@@ -183,7 +183,7 @@ export default function Analytics() {
               CUMULATIVE ACCURACY (%)
             </div>
             {totalBattles > 0 ? (
-              <ResponsiveContainer width="100%" height="250px">
+              <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={accuracyTimeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <XAxis dataKey="match" stroke="#8888bb" fontSize={10} tickLine={false} axisLine={false} />
                   <YAxis domain={[0, 100]} stroke="#8888bb" fontSize={10} tickLine={false} axisLine={false} />
@@ -205,7 +205,7 @@ export default function Analytics() {
             </div>
             {totalBattles > 0 ? (
               <>
-                <ResponsiveContainer width="100%" height="250px">
+                <ResponsiveContainer width="100%" height={250}>
                   <PieChart>
                     <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value" stroke="none">
                       {pieData.map((entry, index) => (
@@ -233,7 +233,7 @@ export default function Analytics() {
               MOST VALUABLE POKÉMON (TOP 5)
             </div>
             {mvpData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="250px">
+              <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={mvpData} layout="vertical" margin={{ left: -10 }}>
                   <XAxis type="number" stroke="#8888bb" fontSize={10} hide />
                   <YAxis type="category" dataKey="name" stroke="#8888bb" fontSize={12} tickLine={false} axisLine={false} />
@@ -254,7 +254,7 @@ export default function Analytics() {
               AVERAGE CONFIDENCE TREND (%)
             </div>
             {totalBattles > 0 ? (
-              <ResponsiveContainer width="100%" height="250px">
+              <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={confidenceTimeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <XAxis dataKey="match" stroke="#8888bb" fontSize={10} tickLine={false} axisLine={false} />
                   <YAxis domain={[0, 100]} stroke="#8888bb" fontSize={10} tickLine={false} axisLine={false} />
