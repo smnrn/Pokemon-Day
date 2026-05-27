@@ -61,6 +61,88 @@ function FloatingPokeball({ x, y, size, floatDuration, floatDelay, rotateDuratio
   );
 }
 
+// ---- Floating Background Pokemon ----
+function FloatingPokemon({ id, x, y, size, floatDuration, floatDelay, opacity, flip = false }) {
+  return (
+    <motion.div
+      style={{
+        position: 'absolute', left: `${x}%`, top: `${y}%`,
+        opacity, zIndex: 0, pointerEvents: 'none'
+      }}
+      animate={{ y: [0, -20, 0] }}
+      transition={{ repeat: Infinity, duration: floatDuration, delay: floatDelay, ease: "easeInOut" }}
+    >
+      <img 
+        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${id}.gif`}
+        alt="Background Pokemon"
+        style={{ 
+          width: `${size}px`, 
+          filter: 'grayscale(20%) brightness(0.7)', 
+          imageRendering: 'pixelated',
+          transform: flip ? 'scaleX(-1)' : 'none'
+        }}
+      />
+    </motion.div>
+  );
+}
+
+// ---- Animated Battle Scene ----
+function AnimatedBattleScene() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 1.2, duration: 0.8, type: 'spring' }}
+      style={{
+        position: 'relative', width: '100%', maxWidth: '400px', height: '180px', margin: '30px auto 0',
+        background: 'radial-gradient(ellipse at center, rgba(67,97,238,0.15) 0%, transparent 70%)',
+        borderRadius: '50%',
+      }}
+    >
+      {/* Player Side (Back Sprite) */}
+      <motion.div
+        animate={{ y: [0, -6, 0] }}
+        transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+        style={{ position: 'absolute', bottom: '15px', left: '10px', zIndex: 2 }}
+      >
+        <img 
+          src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/94.gif" 
+          alt="Gengar" 
+          style={{ width: '110px', imageRendering: 'pixelated', filter: 'drop-shadow(0 15px 8px rgba(0,0,0,0.6))' }}
+        />
+      </motion.div>
+
+      {/* Opponent Side (Front Sprite) */}
+      <motion.div
+        animate={{ y: [0, 6, 0] }}
+        transition={{ repeat: Infinity, duration: 1.9, ease: "easeInOut" }}
+        style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1 }}
+      >
+        <img 
+          src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/6.gif" 
+          alt="Charizard" 
+          style={{ width: '110px', imageRendering: 'pixelated', filter: 'drop-shadow(0 15px 8px rgba(0,0,0,0.6))' }}
+        />
+      </motion.div>
+
+      {/* VS Badge */}
+      <motion.div
+        animate={{ scale: [1, 1.15, 1] }}
+        transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+        style={{
+          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+          fontFamily: 'Press Start 2P', fontSize: '24px',
+          color: '#ffd60a',
+          textShadow: '3px 3px 0px #d90429, 0 0 15px rgba(255,214,10,0.8)',
+          zIndex: 3
+        }}
+      >
+        VS
+      </motion.div>
+    </motion.div>
+  );
+}
+
 // ---- 22 scattered pokéballs across the full viewport ----
 const POKEBALLS = [
   // Left side
@@ -125,6 +207,13 @@ export default function Hero({ onNavigate }) {
 
       {/* Floating Pokéballs — scattered across viewport */}
       {POKEBALLS.map((p, i) => <FloatingPokeball key={i} {...p}/>)}
+
+      {/* Background Animated Pokemon */}
+      <FloatingPokemon id={150} x={8} y={15} size={90} floatDuration={4.2} floatDelay={0} opacity={0.2} /> {/* Mewtwo */}
+      <FloatingPokemon id={249} x={85} y={12} size={100} floatDuration={5.5} floatDelay={1} opacity={0.2} flip={true} /> {/* Lugia */}
+      <FloatingPokemon id={384} x={4} y={70} size={120} floatDuration={6} floatDelay={2} opacity={0.15} /> {/* Rayquaza */}
+      <FloatingPokemon id={448} x={88} y={75} size={80} floatDuration={4.5} floatDelay={0.5} opacity={0.2} flip={true} /> {/* Lucario */}
+      <FloatingPokemon id={230} x={45} y={5} size={70} floatDuration={5} floatDelay={3} opacity={0.15} /> {/* Kingdra */}
 
       {/* Center glow */}
       <div style={{
@@ -226,6 +315,9 @@ export default function Hero({ onNavigate }) {
             VIEW PROFILE
           </motion.button>
         </motion.div>
+
+        {/* Dynamic Animated Battle Scene */}
+        <AnimatedBattleScene />
 
 
 
