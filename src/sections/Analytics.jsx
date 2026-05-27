@@ -139,13 +139,21 @@ export default function Analytics() {
   };
 
   return (
-    <section id="analytics" style={{ padding: '100px 24px 80px', maxWidth: '1200px', margin: '0 auto' }}>
-      <SectionHeader
-        icon={null}
-        title="AI INSIGHTS & TELEMETRY"
-        subtitle="Deep evaluation metrics, KPIs, and quality insights based on your live database."
-        accent="#06d6a0"
-      />
+    <section id="analytics" style={{ 
+      padding: '100px 0 80px', 
+      minHeight: '100vh',
+      background: 'linear-gradient(rgba(10,13,34,0.88), rgba(10,13,34,0.98)), url(/oak_lab.png)', 
+      backgroundSize: 'cover', 
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+    }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
+        <SectionHeader
+          icon={null}
+          title="AI INSIGHTS & TELEMETRY"
+          subtitle="Deep evaluation metrics, KPIs, and quality insights based on your live database."
+          accent="#06d6a0"
+        />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         <div className="glass-card" style={{ padding: '20px', borderRadius: '12px', textAlign: 'center' }}>
@@ -571,6 +579,7 @@ export default function Analytics() {
         </CornerFrame>
       </div>
 
+      </div>
       <style>{`
         @keyframes pulse {
           0% { opacity: 1; transform: scale(1); }
