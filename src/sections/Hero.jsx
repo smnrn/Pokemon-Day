@@ -86,44 +86,97 @@ function FloatingPokemon({ id, x, y, size, floatDuration, floatDelay, opacity, f
   );
 }
 
+// ---- HP Bar Component ----
+function HpBar({ name, level, hpPercent }) {
+  return (
+    <div style={{
+      width: '160px', background: '#f8f8f8', border: '3px solid #2a2a3a',
+      borderRadius: '8px', padding: '6px 10px',
+      fontFamily: 'Press Start 2P', fontSize: '8px', color: '#1a1a2e',
+      boxShadow: '4px 4px 0 rgba(0,0,0,0.5)',
+      textAlign: 'left'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+        <span style={{ textTransform: 'uppercase', fontWeight: 'bold' }}>{name}</span>
+        <span><span style={{ fontSize: '6px' }}>Lv</span>{level}</span>
+      </div>
+      <div style={{ 
+        width: '100%', padding: '2px', background: '#444', borderRadius: '10px',
+        display: 'flex', alignItems: 'center'
+      }}>
+        <div style={{ fontSize: '6px', color: '#ffd60a', marginRight: '4px', textShadow: '1px 1px 0 #000' }}>HP</div>
+        <div style={{ 
+          flex: 1, height: '6px', background: '#e0e0e0', borderRadius: '4px',
+          border: '1px solid #111', overflow: 'hidden'
+        }}>
+          <motion.div 
+            initial={{ width: 0 }}
+            animate={{ width: `${hpPercent}%` }}
+            transition={{ duration: 1.5, delay: 1.5, ease: 'easeOut' }}
+            style={{ height: '100%', background: hpPercent > 50 ? '#06d6a0' : hpPercent > 20 ? '#ffd60a' : '#e63946' }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---- Animated Battle Scene ----
 function AnimatedBattleScene() {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 1.2, duration: 0.8, type: 'spring' }}
       style={{
-        position: 'relative', width: '100%', maxWidth: '400px', height: '180px', margin: '30px auto 0',
-        background: 'radial-gradient(ellipse at center, rgba(67,97,238,0.15) 0%, transparent 70%)',
-        borderRadius: '50%',
+        position: 'relative', width: '100%', maxWidth: '600px', height: '260px', margin: '40px auto 0',
       }}
     >
-      {/* Player Side (Back Sprite) */}
-      <motion.div
-        animate={{ y: [0, -6, 0] }}
-        transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
-        style={{ position: 'absolute', bottom: '15px', left: '10px', zIndex: 2 }}
-      >
-        <img 
-          src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/94.gif" 
-          alt="Gengar" 
-          style={{ width: '110px', imageRendering: 'pixelated', filter: 'drop-shadow(0 15px 8px rgba(0,0,0,0.6))' }}
-        />
-      </motion.div>
+      {/* 3D Battle Platform */}
+      <div style={{
+        position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%) rotateX(70deg)',
+        width: '500px', height: '500px', borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(67,97,238,0.25) 0%, rgba(10,10,26,0.9) 55%, transparent 70%)',
+        border: '3px solid rgba(67,97,238,0.5)',
+        boxShadow: '0 0 50px rgba(67,97,238,0.2), inset 0 0 40px rgba(67,97,238,0.3)',
+        zIndex: 0
+      }}/>
+
+      {/* Opponent HP Bar (Top Left) */}
+      <div style={{ position: 'absolute', top: '10px', left: '20px', zIndex: 3 }}>
+        <HpBar name="Charizard" level="75" hpPercent={100} />
+      </div>
 
       {/* Opponent Side (Front Sprite) */}
       <motion.div
-        animate={{ y: [0, 6, 0] }}
-        transition={{ repeat: Infinity, duration: 1.9, ease: "easeInOut" }}
-        style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1 }}
+        animate={{ y: [0, 8, 0] }}
+        transition={{ repeat: Infinity, duration: 2.1, ease: "easeInOut" }}
+        style={{ position: 'absolute', top: '20px', right: '60px', zIndex: 1 }}
       >
         <img 
           src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/6.gif" 
           alt="Charizard" 
-          style={{ width: '110px', imageRendering: 'pixelated', filter: 'drop-shadow(0 15px 8px rgba(0,0,0,0.6))' }}
+          style={{ width: '130px', imageRendering: 'pixelated', filter: 'drop-shadow(0 20px 10px rgba(0,0,0,0.8))' }}
         />
       </motion.div>
+
+      {/* Player Side (Back Sprite) */}
+      <motion.div
+        animate={{ y: [0, -8, 0] }}
+        transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+        style={{ position: 'absolute', bottom: '20px', left: '60px', zIndex: 2 }}
+      >
+        <img 
+          src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/94.gif" 
+          alt="Gengar" 
+          style={{ width: '140px', imageRendering: 'pixelated', filter: 'drop-shadow(0 25px 15px rgba(0,0,0,0.9))' }}
+        />
+      </motion.div>
+
+      {/* Player HP Bar (Bottom Right) */}
+      <div style={{ position: 'absolute', bottom: '10px', right: '20px', zIndex: 3 }}>
+        <HpBar name="Gengar" level="80" hpPercent={85} />
+      </div>
 
       {/* VS Badge */}
       <motion.div
@@ -242,13 +295,13 @@ export default function Hero({ onNavigate }) {
             >
               3-ISB
             </motion.span>
-            <span style={{ display: 'block', fontSize: 'clamp(18px, 4.5vw, 36px)', color: '#e8e8ff', lineHeight: 1.4 }}>
+            <span style={{ display: 'block', fontSize: 'clamp(24px, 6vw, 54px)', color: '#e8e8ff', lineHeight: 1.4 }}>
               POKÉMON BATTLE
             </span>
             <motion.span
               animate={{ textShadow: ['0 0 20px #e63946', '0 0 40px #e63946, 0 0 80px #e6394640', '0 0 20px #e63946'] }}
               transition={{ repeat: Infinity, duration: 3, delay: 1 }}
-              style={{ display: 'block', fontSize: 'clamp(18px, 4.5vw, 36px)', color: '#e63946' }}
+              style={{ display: 'block', fontSize: 'clamp(24px, 6vw, 54px)', color: '#e63946' }}
             >
               ENGINE SYSTEM
             </motion.span>
