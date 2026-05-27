@@ -87,7 +87,7 @@ function FloatingPokemon({ id, x, y, size, floatDuration, floatDelay, opacity, f
 }
 
 // ---- HP Bar Component ----
-function HpBar({ name, level, hpPercent }) {
+function HpBar({ name, level, hpPercent, color }) {
   return (
     <div style={{
       width: '160px', background: '#f8f8f8', border: '3px solid #2a2a3a',
@@ -113,7 +113,7 @@ function HpBar({ name, level, hpPercent }) {
             initial={{ width: 0 }}
             animate={{ width: `${hpPercent}%` }}
             transition={{ duration: 1.5, delay: 1.5, ease: 'easeOut' }}
-            style={{ height: '100%', background: hpPercent > 50 ? '#06d6a0' : hpPercent > 20 ? '#ffd60a' : '#e63946' }}
+            style={{ height: '100%', background: color || (hpPercent > 50 ? '#06d6a0' : hpPercent > 20 ? '#ffd60a' : '#e63946') }}
           />
         </div>
       </div>
@@ -142,14 +142,14 @@ function AnimatedBattleScene() {
         zIndex: 0
       }}/>
 
-      {/* Opponent HP Bar (Top Left) */}
-      <div style={{ position: 'absolute', top: '10px', left: '40px', zIndex: 3 }}>
-        <HpBar name="Charizard" level="75" hpPercent={100} />
+      {/* Opponent HP Bar (Top Right aligned with Charizard) */}
+      <div style={{ position: 'absolute', top: '0px', right: '105px', zIndex: 3 }}>
+        <HpBar name="Charizard" level="75" hpPercent={100} color="#ffb703" />
       </div>
 
-      {/* Player HP Bar (Bottom Right) */}
-      <div style={{ position: 'absolute', bottom: '20px', right: '40px', zIndex: 3 }}>
-        <HpBar name="Gengar" level="80" hpPercent={85} />
+      {/* Player HP Bar (Bottom Left aligned with Gengar) */}
+      <div style={{ position: 'absolute', bottom: '0px', left: '105px', zIndex: 3 }}>
+        <HpBar name="Gengar" level="80" hpPercent={85} color="#b19cd9" />
       </div>
 
       {/* Charizard Container (Floating) */}
