@@ -106,8 +106,8 @@ export default function Analytics() {
 
   // Pie chart
   const pieData = [
-    { name: 'Hit', value: hits, color: '#e63946' },
-    { name: 'Miss', value: misses, color: '#ffffff' }
+    { name: 'Correct', value: hits, color: '#e63946' },
+    { name: 'Incorrect', value: misses, color: '#ffffff' }
   ];
 
   // MVPs
@@ -201,7 +201,7 @@ export default function Analytics() {
         <CornerFrame color="#ef476f" style={{ borderRadius: '12px' }}>
           <div className="glass-card" style={{ borderRadius: '12px', padding: '32px', height: '350px' }}>
             <div style={{ fontFamily: 'Press Start 2P', fontSize: '10px', color: '#ef476f', marginBottom: '24px' }}>
-              HIT VS MISS RATIO
+              CORRECT VS INCORRECT PREDICTIONS
             </div>
             {totalBattles > 0 ? (
               <>
@@ -222,8 +222,8 @@ export default function Analytics() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8888bb', fontSize: '12px' }}><div style={{ width: '10px', height: '10px', background: '#e63946', borderRadius: '50%' }}></div> Hits</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8888bb', fontSize: '12px' }}><div style={{ width: '10px', height: '10px', background: '#ffffff', borderRadius: '50%' }}></div> Misses</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8888bb', fontSize: '12px' }}><div style={{ width: '10px', height: '10px', background: '#e63946', borderRadius: '50%' }}></div> Correct</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8888bb', fontSize: '12px' }}><div style={{ width: '10px', height: '10px', background: '#ffffff', borderRadius: '50%' }}></div> Incorrect</div>
                 </div>
               </>
             ) : (
