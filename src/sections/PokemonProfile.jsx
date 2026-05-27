@@ -295,7 +295,7 @@ export default function PokemonProfile() {
                           : { repeat: Infinity, duration: 2.5, ease: 'easeInOut' }
                       }
                       style={{
-                        maxHeight: '180px', maxWidth: '180px', objectFit: 'contain',
+                        width: '180px', height: '180px', objectFit: 'contain',
                         imageRendering: 'pixelated',
                         filter: `drop-shadow(0 8px 20px rgba(6,214,160,0.4)) ${shiny ? 'drop-shadow(0 0 15px rgba(255,214,10,0.6))' : ''}`,
                         zIndex: 2,
