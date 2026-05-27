@@ -269,22 +269,29 @@ export default function Analytics() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#4361ee', boxShadow: '0 0 15px #4361ee', animation: 'pulse 2s infinite' }} />
                 <div style={{ fontFamily: 'Press Start 2P', fontSize: '10px', color: '#4361ee' }}>
-                  AI JUSTIFICATION & RECOMMENDATION
+                  PROFESSOR OAK'S AI ANALYSIS
                 </div>
               </div>
 
               <div style={{ background: 'rgba(0,0,0,0.2)', padding: '24px', borderRadius: '8px', borderLeft: '4px solid #4361ee' }}>
-                <p style={{ fontFamily: 'Exo 2', fontSize: '15px', color: '#e8e8ff', lineHeight: 1.6, marginBottom: '16px' }}>
-                  <strong>Model Recommendation:</strong> Based on historical clustering convergence, 
-                  <span style={{ color: '#06d6a0', fontWeight: 700 }}> {bestModel.name} </span> 
-                  is the optimal model to use. It minimizes prediction variance, demonstrating the lowest RMSE ({bestModel.rmse}) and MAPE ({bestModel.mape}%) among all candidates.
-                </p>
-                
-                {selectedModelId !== bestModel.id && (
-                  <p style={{ fontFamily: 'Exo 2', fontSize: '14px', color: '#ffd60a', lineHeight: 1.6, marginBottom: '16px' }}>
-                    <em>Note: You currently selected {selectedModelData.name} (★), which has a higher error rate ({selectedModelData.mape}% MAPE). Switching to {bestModel.short} is advised for stricter competitive drafting.</em>
-                  </p>
-                )}
+                <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', marginBottom: '16px' }}>
+                  <div style={{ flexShrink: 0, width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #06d6a0', boxShadow: '0 0 20px rgba(6,214,160,0.2)' }}>
+                    <img src="/oak.png" alt="Professor Oak" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <div>
+                    <p style={{ fontFamily: 'Exo 2', fontSize: '15px', color: '#e8e8ff', lineHeight: 1.6, marginBottom: '16px' }}>
+                      <strong>Model Recommendation:</strong> Based on historical clustering convergence, 
+                      <span style={{ color: '#06d6a0', fontWeight: 700 }}> {bestModel.name} </span> 
+                      is the optimal model to use. It minimizes prediction variance, demonstrating the lowest RMSE ({bestModel.rmse}) and MAPE ({bestModel.mape}%) among all candidates.
+                    </p>
+                    
+                    {selectedModelId !== bestModel.id && (
+                      <p style={{ fontFamily: 'Exo 2', fontSize: '14px', color: '#ffd60a', lineHeight: 1.6 }}>
+                        <em>Note: You currently selected {selectedModelData.name} (★), which has a higher error rate ({selectedModelData.mape}% MAPE). Switching to {bestModel.short} is advised for stricter competitive drafting.</em>
+                      </p>
+                    )}
+                  </div>
+                </div>
 
                 {/* Table 1: Model Comparison Table */}
                 <div style={{ marginTop: '24px', overflowX: 'auto', marginBottom: '24px' }}>
