@@ -143,12 +143,12 @@ function AnimatedBattleScene() {
       }}/>
 
       {/* Opponent HP Bar (Top Right aligned with Charizard) */}
-      <div style={{ position: 'absolute', top: '0px', right: '105px', zIndex: 3 }}>
+      <div style={{ position: 'absolute', top: '30px', right: '145px', zIndex: 3 }}>
         <HpBar name="Charizard" level="75" hpPercent={100} color="#ffb703" />
       </div>
 
       {/* Player HP Bar (Top Left aligned with Gengar) */}
-      <div style={{ position: 'absolute', bottom: '190px', left: '105px', zIndex: 3 }}>
+      <div style={{ position: 'absolute', bottom: '210px', left: '145px', zIndex: 3 }}>
         <HpBar name="Gengar" level="80" hpPercent={85} color="#b19cd9" />
       </div>
 
@@ -156,7 +156,7 @@ function AnimatedBattleScene() {
       <motion.div
         animate={{ y: [0, 8, 0] }}
         transition={{ repeat: Infinity, duration: 2.1, ease: "easeInOut" }}
-        style={{ position: 'absolute', top: '30px', right: '120px', zIndex: 1 }}
+        style={{ position: 'absolute', top: '60px', right: '160px', zIndex: 1 }}
       >
         <motion.img 
           animate={{ filter: [
@@ -176,7 +176,7 @@ function AnimatedBattleScene() {
       <motion.div
         animate={{ y: [0, -8, 0] }}
         transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
-        style={{ position: 'absolute', bottom: '40px', left: '120px', zIndex: 2 }}
+        style={{ position: 'absolute', bottom: '60px', left: '160px', zIndex: 2 }}
       >
         <motion.img 
           animate={{ filter: [
@@ -195,14 +195,14 @@ function AnimatedBattleScene() {
       {/* Shadow Ball (Gengar to Charizard) */}
       <motion.div
         animate={{ 
-          x: [0, 250, 260, 0], 
-          y: [0, -110, -115, 0], 
+          x: [0, 170, 180, 0], 
+          y: [0, -60, -65, 0], 
           opacity: [0, 1, 0, 0],
           scale: [0.5, 1.2, 2.5, 0]
         }}
         transition={{ repeat: Infinity, duration: 3, times: [0, 0.14, 0.15, 1], delay: 0 }}
         style={{
-          position: 'absolute', bottom: '130px', left: '200px', zIndex: 4,
+          position: 'absolute', bottom: '150px', left: '240px', zIndex: 4,
           width: '30px', height: '30px', borderRadius: '50%',
           background: 'radial-gradient(circle, #e0b0ff 0%, #4b0082 70%)',
           boxShadow: '0 0 20px #8a2be2',
@@ -212,14 +212,14 @@ function AnimatedBattleScene() {
       {/* Flamethrower (Charizard to Gengar) */}
       <motion.div
         animate={{ 
-          x: [0, -250, -260, 0], 
-          y: [0, 110, 115, 0], 
+          x: [0, -170, -180, 0], 
+          y: [0, 60, 65, 0], 
           opacity: [0, 1, 0, 0],
           scale: [0.5, 1.2, 2.5, 0]
         }}
         transition={{ repeat: Infinity, duration: 3, times: [0, 0.14, 0.15, 1], delay: 1.5 }}
         style={{
-          position: 'absolute', top: '100px', right: '200px', zIndex: 4,
+          position: 'absolute', top: '130px', right: '240px', zIndex: 4,
           width: '40px', height: '40px', borderRadius: '50%',
           background: 'radial-gradient(circle, #fff 0%, #ff4500 70%)',
           boxShadow: '0 0 20px #ff4500',
@@ -315,6 +315,12 @@ export default function Hero({ onNavigate }) {
       <FloatingPokemon id={384} x={4} y={70} size={120} floatDuration={6} floatDelay={2} opacity={0.15} /> {/* Rayquaza */}
       <FloatingPokemon id={448} x={88} y={75} size={80} floatDuration={4.5} floatDelay={0.5} opacity={0.2} flip={true} /> {/* Lucario */}
       <FloatingPokemon id={230} x={45} y={5} size={70} floatDuration={5} floatDelay={3} opacity={0.15} /> {/* Kingdra */}
+      <FloatingPokemon id={483} x={25} y={10} size={100} floatDuration={6.5} floatDelay={1.5} opacity={0.2} /> {/* Dialga */}
+      <FloatingPokemon id={484} x={75} y={65} size={110} floatDuration={5.8} floatDelay={2.5} opacity={0.18} flip={true} /> {/* Palkia */}
+      <FloatingPokemon id={487} x={20} y={85} size={130} floatDuration={7} floatDelay={0.8} opacity={0.15} /> {/* Giratina */}
+      <FloatingPokemon id={382} x={60} y={15} size={100} floatDuration={6.2} floatDelay={2.1} opacity={0.2} /> {/* Kyogre */}
+      <FloatingPokemon id={383} x={35} y={75} size={100} floatDuration={5.3} floatDelay={1.2} opacity={0.18} /> {/* Groudon */}
+      <FloatingPokemon id={493} x={65} y={85} size={90} floatDuration={4.8} floatDelay={0.4} opacity={0.2} flip={true} /> {/* Arceus */}
 
       {/* Center glow */}
       <div style={{
