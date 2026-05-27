@@ -143,12 +143,12 @@ function AnimatedBattleScene() {
       }}/>
 
       {/* Opponent HP Bar (Top Right aligned with Charizard) */}
-      <div style={{ position: 'absolute', top: '30px', right: '145px', zIndex: 3 }}>
+      <div style={{ position: 'absolute', top: '15px', right: '125px', zIndex: 3 }}>
         <HpBar name="Charizard" level="75" hpPercent={100} color="#ffb703" />
       </div>
 
       {/* Player HP Bar (Top Left aligned with Gengar) */}
-      <div style={{ position: 'absolute', bottom: '210px', left: '145px', zIndex: 3 }}>
+      <div style={{ position: 'absolute', bottom: '200px', left: '125px', zIndex: 3 }}>
         <HpBar name="Gengar" level="80" hpPercent={85} color="#b19cd9" />
       </div>
 
@@ -156,7 +156,7 @@ function AnimatedBattleScene() {
       <motion.div
         animate={{ y: [0, 8, 0] }}
         transition={{ repeat: Infinity, duration: 2.1, ease: "easeInOut" }}
-        style={{ position: 'absolute', top: '60px', right: '160px', zIndex: 1 }}
+        style={{ position: 'absolute', top: '45px', right: '140px', zIndex: 1 }}
       >
         <motion.img 
           animate={{ filter: [
@@ -176,7 +176,7 @@ function AnimatedBattleScene() {
       <motion.div
         animate={{ y: [0, -8, 0] }}
         transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
-        style={{ position: 'absolute', bottom: '60px', left: '160px', zIndex: 2 }}
+        style={{ position: 'absolute', bottom: '50px', left: '140px', zIndex: 2 }}
       >
         <motion.img 
           animate={{ filter: [
@@ -195,14 +195,14 @@ function AnimatedBattleScene() {
       {/* Shadow Ball (Gengar to Charizard) */}
       <motion.div
         animate={{ 
-          x: [0, 170, 180, 0], 
-          y: [0, -60, -65, 0], 
+          x: [0, 210, 220, 0], 
+          y: [0, -85, -90, 0], 
           opacity: [0, 1, 0, 0],
           scale: [0.5, 1.2, 2.5, 0]
         }}
         transition={{ repeat: Infinity, duration: 3, times: [0, 0.14, 0.15, 1], delay: 0 }}
         style={{
-          position: 'absolute', bottom: '150px', left: '240px', zIndex: 4,
+          position: 'absolute', bottom: '140px', left: '220px', zIndex: 4,
           width: '30px', height: '30px', borderRadius: '50%',
           background: 'radial-gradient(circle, #e0b0ff 0%, #4b0082 70%)',
           boxShadow: '0 0 20px #8a2be2',
@@ -212,14 +212,14 @@ function AnimatedBattleScene() {
       {/* Flamethrower (Charizard to Gengar) */}
       <motion.div
         animate={{ 
-          x: [0, -170, -180, 0], 
-          y: [0, 60, 65, 0], 
+          x: [0, -210, -220, 0], 
+          y: [0, 85, 90, 0], 
           opacity: [0, 1, 0, 0],
           scale: [0.5, 1.2, 2.5, 0]
         }}
         transition={{ repeat: Infinity, duration: 3, times: [0, 0.14, 0.15, 1], delay: 1.5 }}
         style={{
-          position: 'absolute', top: '130px', right: '240px', zIndex: 4,
+          position: 'absolute', top: '115px', right: '220px', zIndex: 4,
           width: '40px', height: '40px', borderRadius: '50%',
           background: 'radial-gradient(circle, #fff 0%, #ff4500 70%)',
           boxShadow: '0 0 20px #ff4500',
