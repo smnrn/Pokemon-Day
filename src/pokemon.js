@@ -321,7 +321,7 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
   }
   
   
-  const valid = pool.filter(p => p && !p.name.includes('-')).map(p => ({
+  const valid = pool.filter(p => p && !p.name.includes('-') && p.stats.reduce((s, st) => s + st.base_stat, 0) >= 420).map(p => ({
     ...p,
     types: p.types.map(t => t.type.name),
     sprite: p.sprites.other?.['official-artwork']?.front_default || p.sprites.front_default,
@@ -345,8 +345,8 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
       else if (theirBestAttack >= 2) defensiveScore -= 20; // Penalize if I'm weak to them
     });
 
-    // Weight: 40% Offense, 40% Defense, 20% Base Stats (normalized)
-    const bstBonus = (p.bst / 720) * 40; 
+    // Heavily weight Base Stats to prefer fully evolved Pokemon
+    const bstBonus = (p.bst / 720) * 80; 
     const rawScore = (offensiveScore * 0.8) + (defensiveScore * 1.2) + bstBonus;
     
     // Normalize to 1-100 range
@@ -533,8 +533,28 @@ export function predictBattle(teamA, teamB) {
       return sum + total;
     }, 0);
   }
-  const scoreA = teamScore(teamA);
-  const scoreB = teamScore(teamB);
+  let teamAAdvantage = 0;
+  let teamBAdvantage = 0;
+  
+  teamA.forEach(a => {
+    const aTypes = a.types ? a.types.map(t => t.type?.name || t) : [];
+    teamB.forEach(b => {
+      const bTypes = b.types ? b.types.map(t => t.type?.name || t) : [];
+      if (aTypes.length && bTypes.length) {
+        const aAtkB = getTotalEffectiveness(aTypes, bTypes);
+        const bAtkA = getTotalEffectiveness(bTypes, aTypes);
+        
+        if (aAtkB >= 2) teamAAdvantage += aAtkB * 40;
+        else if (aAtkB < 1) teamBAdvantage += (1 - aAtkB) * 40;
+
+        if (bAtkA >= 2) teamBAdvantage += bAtkA * 40;
+        else if (bAtkA < 1) teamAAdvantage += (1 - bAtkA) * 40;
+      }
+    });
+  });
+
+  const scoreA = teamScore(teamA) + teamAAdvantage;
+  const scoreB = teamScore(teamB) + teamBAdvantage;
   const total = scoreA + scoreB || 1;
   const confA = Math.round((scoreA / total) * 100);
   const confB = 100 - confA;
