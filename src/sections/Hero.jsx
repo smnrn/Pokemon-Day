@@ -129,7 +129,7 @@ function AnimatedBattleScene() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 1.2, duration: 0.8, type: 'spring' }}
       style={{
-        position: 'relative', width: '100%', maxWidth: '700px', height: '350px', margin: '80px auto 0',
+        position: 'relative', width: '100%', maxWidth: '700px', height: '350px', margin: '20px auto 0', transform: 'scale(0.85)', transformOrigin: 'top center'
       }}
     >
       {/* 3D Battle Platform */}
@@ -327,7 +327,7 @@ export default function Hero({ onNavigate }) {
       }}/>
 
       {/* Main Content */}
-      <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '40px 24px', maxWidth: '900px' }}>
+      <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '10px 24px 0', maxWidth: '900px' }}>
         
         {/* Main Title */}
         <motion.div
@@ -335,21 +335,21 @@ export default function Hero({ onNavigate }) {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         >
-          <h1 className="font-pixel" style={{ marginBottom: '8px' }}>
+          <h1 className="font-pixel" style={{ marginBottom: '4px' }}>
             <motion.span
               animate={{ textShadow: ['0 0 20px #4361ee', '0 0 40px #4361ee, 0 0 80px #4361ee40', '0 0 20px #4361ee'] }}
               transition={{ repeat: Infinity, duration: 3 }}
-              style={{ display: 'block', fontSize: 'clamp(12px, 3vw, 22px)', color: '#4361ee', marginBottom: '4px' }}
+              style={{ display: 'block', fontSize: 'clamp(12px, 3vw, 18px)', color: '#4361ee', marginBottom: '4px' }}
             >
               3-ISB
             </motion.span>
-            <span style={{ display: 'block', fontSize: 'clamp(24px, 6vw, 54px)', color: '#e8e8ff', lineHeight: 1.4 }}>
+            <span style={{ display: 'block', fontSize: 'clamp(20px, 5vw, 42px)', color: '#e8e8ff', lineHeight: 1.4 }}>
               POKÉMON BATTLE
             </span>
             <motion.span
               animate={{ textShadow: ['0 0 20px #e63946', '0 0 40px #e63946, 0 0 80px #e6394640', '0 0 20px #e63946'] }}
               transition={{ repeat: Infinity, duration: 3, delay: 1 }}
-              style={{ display: 'block', fontSize: 'clamp(24px, 6vw, 54px)', color: '#e63946' }}
+              style={{ display: 'block', fontSize: 'clamp(20px, 5vw, 42px)', color: '#e63946' }}
             >
               ENGINE SYSTEM
             </motion.span>
@@ -362,7 +362,7 @@ export default function Hero({ onNavigate }) {
           animate={{ scaleX: 1 }}
           transition={{ duration: 1, delay: 0.6 }}
           style={{
-            height: '1px', margin: '28px auto',
+            height: '1px', margin: '16px auto',
             background: 'linear-gradient(90deg, transparent, #4361ee, #e63946, transparent)',
             maxWidth: '500px',
           }}
@@ -373,7 +373,7 @@ export default function Hero({ onNavigate }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          style={{ fontFamily: 'Exo 2', fontSize: '15px', color: '#8888bb', maxWidth: '600px', margin: '0 auto 40px', lineHeight: 1.8 }}
+          style={{ fontFamily: 'Exo 2', fontSize: '13px', color: '#8888bb', maxWidth: '600px', margin: '0 auto 20px', lineHeight: 1.6 }}
         >
           A high-tech AI battle command center powered by machine learning. Generate optimal gym leader teams,
           counter-pick opponents, predict battle outcomes, and analyze your performance — all in one system.
@@ -426,7 +426,7 @@ export default function Hero({ onNavigate }) {
         <motion.div
           animate={{ y: [0, 8, 0], opacity: [0.4, 1, 0.4] }}
           transition={{ repeat: Infinity, duration: 2 }}
-          style={{ marginTop: '60px', color: '#8888bb', fontSize: '11px', fontFamily: 'Exo 2' }}
+          style={{ marginTop: '0px', color: '#8888bb', fontSize: '11px', fontFamily: 'Exo 2' }}
         >
           ▼ scroll to explore
         </motion.div>
