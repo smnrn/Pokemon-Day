@@ -129,7 +129,7 @@ function AnimatedBattleScene() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 1.2, duration: 0.8, type: 'spring' }}
       style={{
-        position: 'relative', width: '100%', maxWidth: '700px', height: '350px', margin: '40px auto 0',
+        position: 'relative', width: '100%', maxWidth: '700px', height: '350px', margin: '80px auto 0',
       }}
     >
       {/* 3D Battle Platform */}

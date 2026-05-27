@@ -58,8 +58,8 @@ export default function Navbar({ activeSection, onNavigate }) {
               </svg>
             </motion.div>
             <div>
-              <div style={{ fontFamily: 'Press Start 2P', fontSize: '7px', color: '#4361ee', lineHeight: 1 }}>3-ISB</div>
-              <div style={{ fontFamily: 'Press Start 2P', fontSize: '5px', color: '#8888bb', lineHeight: 1.5 }}>BATTLE ENGINE</div>
+              <div style={{ fontFamily: 'Press Start 2P', fontSize: '14px', color: '#4361ee', lineHeight: 1 }}>3-ISB</div>
+              <div style={{ fontFamily: 'Press Start 2P', fontSize: '8px', color: '#8888bb', lineHeight: 1.5, marginTop: '4px' }}>BATTLE ENGINE</div>
             </div>
           </div>
 
@@ -80,10 +80,10 @@ export default function Navbar({ activeSection, onNavigate }) {
                 whileHover={{ color: '#e8e8ff' }}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
-                  padding: '8px 10px',
-                  fontFamily: 'Press Start 2P', fontSize: '6px',
+                  padding: '10px 14px',
+                  fontFamily: 'Press Start 2P', fontSize: '10px',
                   color: activeSection === item.id ? '#e8e8ff' : '#8888bb',
-                  display: 'flex', alignItems: 'center', gap: '5px',
+                  display: 'flex', alignItems: 'center', gap: '8px',
                   transition: 'color 0.2s', whiteSpace: 'nowrap',
                   position: 'relative',
                 }}
@@ -100,7 +100,7 @@ export default function Navbar({ activeSection, onNavigate }) {
               transition={{ repeat: Infinity, duration: 2 }}
               style={{ width: 6, height: 6, borderRadius: '50%', background: '#06d6a0', boxShadow: '0 0 6px #06d6a0' }}
             />
-            <span style={{ fontFamily: 'Press Start 2P', fontSize: '5px', color: '#06d6a0' }}>ONLINE</span>
+            <span style={{ fontFamily: 'Press Start 2P', fontSize: '8px', color: '#06d6a0' }}>ONLINE</span>
           </div>
 
           {/* Mobile Menu Button */}
@@ -132,8 +132,8 @@ export default function Navbar({ activeSection, onNavigate }) {
                   style={{
                     display: 'block', width: '100%', textAlign: 'left',
                     background: 'none', border: 'none', cursor: 'pointer',
-                    padding: '14px 24px',
-                    fontFamily: 'Press Start 2P', fontSize: '8px',
+                    padding: '16px 24px',
+                    fontFamily: 'Press Start 2P', fontSize: '11px',
                     color: activeSection === item.id ? '#4361ee' : '#8888bb',
                     borderBottom: '1px solid rgba(67,97,238,0.1)',
                   }}
