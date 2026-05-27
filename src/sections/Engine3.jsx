@@ -245,10 +245,23 @@ export default function Engine3() {
                     {battlerAName || 'BATTLER A'}
                   </div>
                   <CircularProgress value={prediction.confA} size={140} color="#4361ee" label="Confidence"/>
-                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginTop: '12px', flexWrap: 'wrap' }}>
-                    {prediction.teamA.slice(0,6).map(p => (
-                      <span key={p.id} style={{ fontFamily: 'Exo 2', fontSize: '10px', color: '#8888bb', textTransform: 'capitalize' }}>{p.name}</span>
-                    )).reduce((acc, el, i) => i === 0 ? [el] : [...acc, <span key={`sep${i}`} style={{ color: '#4361ee30' }}>·</span>, el], [])}
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '16px', flexWrap: 'wrap' }}>
+                    {prediction.teamA.slice(0,6).map(p => {
+                      const spriteUrl = p.sprites?.versions?.['generation-v']?.['black-white']?.animated?.front_default || p.sprites?.front_default;
+                      return (
+                        <div key={p.id} style={{
+                          width: '48px', height: '48px',
+                          background: 'rgba(67,97,238,0.15)', border: '1px solid rgba(67,97,238,0.4)',
+                          borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }} title={p.name}>
+                          {spriteUrl ? (
+                            <img src={spriteUrl} alt={p.name} style={{ maxHeight: '40px', maxWidth: '40px', imageRendering: 'pixelated' }} />
+                          ) : (
+                            <span style={{ fontSize: '10px' }}>?</span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -265,10 +278,23 @@ export default function Engine3() {
                     {battlerBName || 'BATTLER B'}
                   </div>
                   <CircularProgress value={prediction.confB} size={140} color="#e63946" label="Confidence"/>
-                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginTop: '12px', flexWrap: 'wrap' }}>
-                    {prediction.teamB.slice(0,6).map(p => (
-                      <span key={p.id} style={{ fontFamily: 'Exo 2', fontSize: '10px', color: '#8888bb', textTransform: 'capitalize' }}>{p.name}</span>
-                    )).reduce((acc, el, i) => i === 0 ? [el] : [...acc, <span key={`sep${i}`} style={{ color: '#e6394630' }}>·</span>, el], [])}
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '16px', flexWrap: 'wrap' }}>
+                    {prediction.teamB.slice(0,6).map(p => {
+                      const spriteUrl = p.sprites?.versions?.['generation-v']?.['black-white']?.animated?.front_default || p.sprites?.front_default;
+                      return (
+                        <div key={p.id} style={{
+                          width: '48px', height: '48px',
+                          background: 'rgba(230,57,70,0.15)', border: '1px solid rgba(230,57,70,0.4)',
+                          borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }} title={p.name}>
+                          {spriteUrl ? (
+                            <img src={spriteUrl} alt={p.name} style={{ maxHeight: '40px', maxWidth: '40px', imageRendering: 'pixelated' }} />
+                          ) : (
+                            <span style={{ fontSize: '10px' }}>?</span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
