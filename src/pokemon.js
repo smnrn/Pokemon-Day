@@ -341,8 +341,8 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
     bst: p.stats.reduce((s, st) => s + st.base_stat, 0)
   }));
 
-  // Deep Counter Analysis Score
-  const scored = valid.map(p => {
+  // Deep Counter Analysis Score (Calculate Raw)
+  const scoredRaw = valid.map(p => {
     let offensiveScore = 0;
     let defensiveScore = 0;
 
@@ -361,15 +361,21 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
     const bstBonus = (p.bst / 720) * 80; 
     const rawScore = (offensiveScore * 0.8) + (defensiveScore * 1.2) + bstBonus;
     
-    // Normalize to 1-100 range
-    const normalizedScore = Math.min(99, Math.max(10, Math.round(rawScore)));
-    
     const matchups = opponentTeam.map(opp => ({
       name: opp.name,
       multiplier: getTotalEffectiveness(p.types, opp.types || []),
     }));
 
-    return { ...p, counterScore: normalizedScore, matchups };
+    return { ...p, rawScore, matchups };
+  });
+
+  // Relative Scaling: The absolute best counter in the pool sets the 99 ceiling
+  const maxRaw = Math.max(1, ...scoredRaw.map(p => p.rawScore));
+
+  const scored = scoredRaw.map(p => {
+    let normalizedScore = Math.round((p.rawScore / maxRaw) * 99);
+    normalizedScore = Math.min(99, Math.max(1, normalizedScore));
+    return { ...p, counterScore: normalizedScore };
   });
 
   // Pick top 6 absolute best scores (excluding legendaries)

@@ -106,8 +106,8 @@ export default function Analytics() {
 
   // Pie chart
   const pieData = [
-    { name: 'Hit', value: hits, color: '#06d6a0' },
-    { name: 'Miss', value: misses, color: '#ef476f' }
+    { name: 'Hit', value: hits, color: '#e63946' },
+    { name: 'Miss', value: misses, color: '#ffffff' }
   ];
 
   // MVPs
@@ -204,22 +204,26 @@ export default function Analytics() {
               HIT VS MISS RATIO
             </div>
             {totalBattles > 0 ? (
-              <>
+              <div style={{ position: 'relative' }}>
                 <ResponsiveContainer width="100%" height={250}>
                   <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value" stroke="none">
+                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={0} outerRadius={90} dataKey="value" stroke="#0a0f24" strokeWidth={6}>
                       {pieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip content={<CustomTooltip />} />
+                    <Tooltip contentStyle={{ background: 'rgba(10,15,36,0.9)', borderColor: '#e63946', fontFamily: 'Exo 2', fontSize: '12px', color: '#e8e8ff', borderRadius: '8px' }} itemStyle={{ color: '#e8e8ff' }} />
                   </PieChart>
                 </ResponsiveContainer>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '-10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8888bb', fontSize: '12px' }}><div style={{ width: '10px', height: '10px', background: '#06d6a0', borderRadius: '50%' }}></div> Hits</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8888bb', fontSize: '12px' }}><div style={{ width: '10px', height: '10px', background: '#ef476f', borderRadius: '50%' }}></div> Misses</div>
+                {/* Pokeball Center Button */}
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '36px', height: '36px', borderRadius: '50%', background: '#ffffff', border: '6px solid #0a0f24', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                   <div style={{ width: '12px', height: '12px', borderRadius: '50%', border: '2px solid #0a0f24' }} />
                 </div>
-              </>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8888bb', fontSize: '12px' }}><div style={{ width: '10px', height: '10px', background: '#e63946', borderRadius: '50%' }}></div> Hits</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8888bb', fontSize: '12px' }}><div style={{ width: '10px', height: '10px', background: '#ffffff', borderRadius: '50%' }}></div> Misses</div>
+                </div>
+              </div>
             ) : (
               <div style={{ color: '#8888bb', fontFamily: 'Exo 2', textAlign: 'center', marginTop: '100px' }}>Log battles in Engine 3 to see data.</div>
             )}
