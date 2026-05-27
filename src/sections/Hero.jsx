@@ -129,65 +129,113 @@ function AnimatedBattleScene() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 1.2, duration: 0.8, type: 'spring' }}
       style={{
-        position: 'relative', width: '100%', maxWidth: '600px', height: '260px', margin: '40px auto 0',
+        position: 'relative', width: '100%', maxWidth: '700px', height: '350px', margin: '40px auto 0',
       }}
     >
       {/* 3D Battle Platform */}
       <div style={{
-        position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%) rotateX(70deg)',
-        width: '500px', height: '500px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(67,97,238,0.25) 0%, rgba(10,10,26,0.9) 55%, transparent 70%)',
+        position: 'absolute', top: '55%', left: '50%', transform: 'translate(-50%, -50%) rotateX(70deg)',
+        width: '550px', height: '550px', borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(67,97,238,0.25) 0%, rgba(10,10,26,0.95) 60%, transparent 70%)',
         border: '3px solid rgba(67,97,238,0.5)',
-        boxShadow: '0 0 50px rgba(67,97,238,0.2), inset 0 0 40px rgba(67,97,238,0.3)',
+        boxShadow: '0 0 50px rgba(67,97,238,0.3), inset 0 0 40px rgba(67,97,238,0.4)',
         zIndex: 0
       }}/>
 
       {/* Opponent HP Bar (Top Left) */}
-      <div style={{ position: 'absolute', top: '10px', left: '20px', zIndex: 3 }}>
+      <div style={{ position: 'absolute', top: '10px', left: '40px', zIndex: 3 }}>
         <HpBar name="Charizard" level="75" hpPercent={100} />
       </div>
 
-      {/* Opponent Side (Front Sprite) */}
-      <motion.div
-        animate={{ y: [0, 8, 0] }}
-        transition={{ repeat: Infinity, duration: 2.1, ease: "easeInOut" }}
-        style={{ position: 'absolute', top: '20px', right: '60px', zIndex: 1 }}
-      >
-        <img 
-          src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/6.gif" 
-          alt="Charizard" 
-          style={{ width: '130px', imageRendering: 'pixelated', filter: 'drop-shadow(0 20px 10px rgba(0,0,0,0.8))' }}
-        />
-      </motion.div>
-
-      {/* Player Side (Back Sprite) */}
-      <motion.div
-        animate={{ y: [0, -8, 0] }}
-        transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
-        style={{ position: 'absolute', bottom: '20px', left: '60px', zIndex: 2 }}
-      >
-        <img 
-          src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/94.gif" 
-          alt="Gengar" 
-          style={{ width: '140px', imageRendering: 'pixelated', filter: 'drop-shadow(0 25px 15px rgba(0,0,0,0.9))' }}
-        />
-      </motion.div>
-
       {/* Player HP Bar (Bottom Right) */}
-      <div style={{ position: 'absolute', bottom: '10px', right: '20px', zIndex: 3 }}>
+      <div style={{ position: 'absolute', bottom: '20px', right: '40px', zIndex: 3 }}>
         <HpBar name="Gengar" level="80" hpPercent={85} />
       </div>
 
+      {/* Charizard Container (Floating) */}
+      <motion.div
+        animate={{ y: [0, 8, 0] }}
+        transition={{ repeat: Infinity, duration: 2.1, ease: "easeInOut" }}
+        style={{ position: 'absolute', top: '30px', right: '120px', zIndex: 1 }}
+      >
+        <motion.img 
+          animate={{ filter: [
+            'drop-shadow(0 20px 10px rgba(0,0,0,0.8)) brightness(1)', 
+            'drop-shadow(0 20px 10px rgba(0,0,0,0.8)) brightness(1)', 
+            'drop-shadow(0 20px 10px rgba(0,0,0,0.8)) brightness(2.5)', 
+            'drop-shadow(0 20px 10px rgba(0,0,0,0.8)) brightness(1)'
+          ] }}
+          transition={{ repeat: Infinity, duration: 3, times: [0, 0.14, 0.15, 0.25], delay: 0 }}
+          src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/6.gif" 
+          alt="Charizard" 
+          style={{ width: '130px', imageRendering: 'pixelated' }}
+        />
+      </motion.div>
+
+      {/* Gengar Container (Floating) */}
+      <motion.div
+        animate={{ y: [0, -8, 0] }}
+        transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+        style={{ position: 'absolute', bottom: '40px', left: '120px', zIndex: 2 }}
+      >
+        <motion.img 
+          animate={{ filter: [
+            'drop-shadow(0 25px 15px rgba(0,0,0,0.9)) brightness(1)', 
+            'drop-shadow(0 25px 15px rgba(0,0,0,0.9)) brightness(1)', 
+            'drop-shadow(0 25px 15px rgba(0,0,0,0.9)) brightness(2.5)', 
+            'drop-shadow(0 25px 15px rgba(0,0,0,0.9)) brightness(1)'
+          ] }}
+          transition={{ repeat: Infinity, duration: 3, times: [0, 0.64, 0.65, 0.75], delay: 0 }}
+          src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/94.gif" 
+          alt="Gengar" 
+          style={{ width: '150px', imageRendering: 'pixelated' }}
+        />
+      </motion.div>
+
+      {/* Shadow Ball (Gengar to Charizard) */}
+      <motion.div
+        animate={{ 
+          x: [0, 250, 260, 0], 
+          y: [0, -110, -115, 0], 
+          opacity: [0, 1, 0, 0],
+          scale: [0.5, 1.2, 2.5, 0]
+        }}
+        transition={{ repeat: Infinity, duration: 3, times: [0, 0.14, 0.15, 1], delay: 0 }}
+        style={{
+          position: 'absolute', bottom: '130px', left: '200px', zIndex: 4,
+          width: '30px', height: '30px', borderRadius: '50%',
+          background: 'radial-gradient(circle, #e0b0ff 0%, #4b0082 70%)',
+          boxShadow: '0 0 20px #8a2be2',
+        }}
+      />
+
+      {/* Flamethrower (Charizard to Gengar) */}
+      <motion.div
+        animate={{ 
+          x: [0, -250, -260, 0], 
+          y: [0, 110, 115, 0], 
+          opacity: [0, 1, 0, 0],
+          scale: [0.5, 1.2, 2.5, 0]
+        }}
+        transition={{ repeat: Infinity, duration: 3, times: [0, 0.14, 0.15, 1], delay: 1.5 }}
+        style={{
+          position: 'absolute', top: '100px', right: '200px', zIndex: 4,
+          width: '40px', height: '40px', borderRadius: '50%',
+          background: 'radial-gradient(circle, #fff 0%, #ff4500 70%)',
+          boxShadow: '0 0 20px #ff4500',
+        }}
+      />
+
       {/* VS Badge */}
       <motion.div
-        animate={{ scale: [1, 1.15, 1] }}
-        transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+        animate={{ scale: [1, 1, 1.3, 1, 1, 1.3, 1] }}
+        transition={{ repeat: Infinity, duration: 3, times: [0, 0.14, 0.15, 0.25, 0.64, 0.65, 1] }}
         style={{
-          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+          position: 'absolute', top: '45%', left: '50%', transform: 'translate(-50%, -50%)',
           fontFamily: 'Press Start 2P', fontSize: '24px',
           color: '#ffd60a',
           textShadow: '3px 3px 0px #d90429, 0 0 15px rgba(255,214,10,0.8)',
-          zIndex: 3
+          zIndex: 4
         }}
       >
         VS
