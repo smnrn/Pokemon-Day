@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { generateCounters, exportJSON, exportCSV, exportShowdown, parseTeamInput } from '../pokemon.js';
+import { generateCounters, exportJSON, exportCSV, exportShowdown, parseTeamInput, REGIONS } from '../pokemon.js';
 import { saveEngineOutput } from '../db.js';
 import { TypeBadge, SectionHeader, ExportButtons, PokeballLoader, CornerFrame } from '../components/UI.jsx';
 import { useToast } from '../components/Toast.jsx';
@@ -96,6 +96,7 @@ export default function Engine2() {
   const toast = useToast();
   const [inputText, setInputText] = useState('');
   const [useFullDex, setUseFullDex] = useState(true);
+  const [region, setRegion] = useState('all');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [opponentTeam, setOpponentTeam] = useState([]);
@@ -152,7 +153,7 @@ export default function Engine2() {
       setOpponentTeam(validOpp);
       
       const customPoolData = (!useFullDex && customPoolText) ? parseTeamInput(customPoolText) : null;
-      const counters = await generateCounters(validOpp, useFullDex, customPoolData);
+      const counters = await generateCounters(validOpp, useFullDex, customPoolData, region);
       
       setResult(counters);
       const minimalCounters = counters.map(c => ({
@@ -250,6 +251,16 @@ export default function Engine2() {
                   </span>
                 )}
               </div>
+              
+              {useFullDex && (
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ display: 'block', fontFamily: 'Press Start 2P', fontSize: '6px', color: '#8888bb', marginBottom: '8px' }}>REGION / GENERATION</label>
+                  <select className="sci-input" value={region} onChange={e => setRegion(e.target.value)} style={{ padding: '8px', fontSize: '10px' }}>
+                    {REGIONS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  </select>
+                </div>
+              )}
+
               <div style={{ display: 'flex', gap: '0', borderRadius: '6px', overflow: 'hidden', border: '1px solid rgba(230,57,70,0.3)', marginBottom: '12px' }}>
                 <button
                   onClick={() => { setUseFullDex(true); setCustomPoolFileName(''); }}

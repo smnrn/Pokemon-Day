@@ -292,9 +292,9 @@ export async function generateGymTeam({ gymType, strategy, teamSize, model, regi
   return { team, model, metricLabel, metricValue };
 }
 
-// ---- COUNTER PICK ENGINE ----
-export async function generateCounters(opponentTeam, useFullDex, customPoolData = null) {
+export async function generateCounters(opponentTeam, useFullDex, customPoolData = null, region = 'all') {
   const opponentTypes = opponentTeam.flatMap(p => p.types || []);
+  const regionData = REGIONS.find(r => r.id === region) || REGIONS[0];
   
   let pool;
   if (customPoolData && customPoolData.length > 0) {
@@ -303,20 +303,15 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
       sample.map(p => fetchWithRetry(`https://pokeapi.co/api/v2/pokemon/${p.name}`).then(r => r.json()).catch(() => null))
     );
   } else {
-    // Fetch a massive pool to guarantee we find the absolute best counter
-    const poolSize = useFullDex ? 300 : 150; 
-    const offset = 0; // Deterministic
-    const res = await fetchWithRetry(`https://pokeapi.co/api/v2/pokemon?limit=${poolSize}&offset=${offset}`);
-    const listData = await res.json();
+    const min = regionData.min;
+    const max = regionData.max;
+    const idPool = [];
+    for (let id = min; id <= max; id++) idPool.push(id);
     
-    // Deterministically sample up to 60 Pokemon across the entire fetched list to ensure consistent outputs
-    const sample = [];
-    const step = Math.max(1, Math.floor(listData.results.length / 60));
-    for (let i = 0; i < 60 && (i * step) < listData.results.length; i++) {
-      sample.push(listData.results[i * step]);
-    }
+    // Sample 60 Pokemon from the specified region
+    const sampleIds = idPool.sort(() => Math.random() - 0.5).slice(0, 60);
     pool = await Promise.all(
-      sample.map(p => fetchWithRetry(p.url).then(r => r.json()).catch(() => null))
+      sampleIds.map(id => fetchWithRetry(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r => r.json()).catch(() => null))
     );
   }
   
