@@ -141,8 +141,8 @@ export default function PokemonProfile() {
 
   const spriteUrl = pokemon
     ? (shiny
-        ? (pokemon.sprites.other?.['official-artwork']?.front_shiny || pokemon.sprites.front_shiny)
-        : (pokemon.sprites.other?.['official-artwork']?.front_default || pokemon.sprites.front_default))
+        ? (pokemon.sprites.other?.showdown?.front_shiny || pokemon.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_shiny || pokemon.sprites.other?.['official-artwork']?.front_shiny || pokemon.sprites.front_shiny)
+        : (pokemon.sprites.other?.showdown?.front_default || pokemon.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default || pokemon.sprites.other?.['official-artwork']?.front_default || pokemon.sprites.front_default))
     : null;
 
   const flavorText = species?.flavor_text_entries?.find(e => e.language.name === 'en')?.flavor_text?.replace(/\f/g, ' ') || '';
@@ -296,6 +296,7 @@ export default function PokemonProfile() {
                       }
                       style={{
                         maxHeight: '180px', maxWidth: '180px', objectFit: 'contain',
+                        imageRendering: 'pixelated',
                         filter: `drop-shadow(0 8px 20px rgba(6,214,160,0.4)) ${shiny ? 'drop-shadow(0 0 15px rgba(255,214,10,0.6))' : ''}`,
                         zIndex: 2,
                       }}
