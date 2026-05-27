@@ -124,15 +124,21 @@ export default function Engine1() {
   }
 
   return (
-    <section id="engine1" style={{ padding: '100px 24px 80px', maxWidth: '1200px', margin: '0 auto' }}>
-      <SectionHeader
-        icon={null}
-        title="ENGINE 1 — GYM LEADER TEAM GENERATOR"
-        subtitle="Configure your gym parameters and let the AI engine assemble the optimal team composition using advanced ML models."
-        accent="#4361ee"
-      />
+    <section id="engine1" style={{ padding: '100px 0 80px', position: 'relative' }}>
+      
+      {/* Background Decorations */}
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/376.gif" alt="Metagross" style={{ position: 'absolute', left: 'calc(50% - 800px)', top: '15%', opacity: 0.08, width: '450px', imageRendering: 'pixelated', pointerEvents: 'none', transform: 'scaleX(-1)', zIndex: 0 }} />
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/65.gif" alt="Alakazam" style={{ position: 'absolute', right: 'calc(50% - 750px)', top: '40%', opacity: 0.08, width: '400px', imageRendering: 'pixelated', pointerEvents: 'none', zIndex: 0 }} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '24px', alignItems: 'start' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 1 }}>
+        <SectionHeader
+          icon={null}
+          title="ENGINE 1 — GYM LEADER TEAM GENERATOR"
+          subtitle="Configure your gym parameters and let the AI engine assemble the optimal team composition using advanced ML models."
+          accent="#4361ee"
+        />
+
+      <div className="engine-grid" style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '24px', alignItems: 'start' }}>
         {/* Config Panel */}
         <CornerFrame color="#4361ee" style={{ borderRadius: '12px' }}>
           <div className="glass-card" style={{ borderRadius: '12px', padding: '28px' }}>
@@ -307,9 +313,10 @@ export default function Engine1() {
 
       <style>{`
         @media (max-width: 900px) {
-          #engine1 > div { grid-template-columns: 1fr !important; }
+          #engine1 .engine-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
+      </div>
     </section>
   );
 }

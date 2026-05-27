@@ -187,15 +187,21 @@ export default function Engine2() {
     toast('Showdown format exported.', 'info');
   }
   return (
-    <section id="engine2" style={{ padding: '80px 24px', maxWidth: '1200px', margin: '0 auto' }}>
-      <SectionHeader
-        icon={null}
-        title="ENGINE 2 — COUNTER-PICK ENGINE"
-        subtitle="Paste the opponent's team and let the engine find the optimal counter-picks with type matchup analysis."
-        accent="#e63946"
-      />
+    <section id="engine2" style={{ padding: '80px 0', position: 'relative' }}>
+      
+      {/* Background Decorations */}
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/212.gif" alt="Scizor" style={{ position: 'absolute', left: 'calc(50% - 750px)', top: '25%', opacity: 0.08, width: '400px', imageRendering: 'pixelated', pointerEvents: 'none', transform: 'scaleX(-1)', zIndex: 0 }} />
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/68.gif" alt="Machamp" style={{ position: 'absolute', right: 'calc(50% - 800px)', top: '45%', opacity: 0.08, width: '450px', imageRendering: 'pixelated', pointerEvents: 'none', zIndex: 0 }} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '24px', alignItems: 'start' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 1 }}>
+        <SectionHeader
+          icon={null}
+          title="ENGINE 2 — COUNTER-PICK ENGINE"
+          subtitle="Paste the opponent's team and let the engine find the optimal counter-picks with type matchup analysis."
+          accent="#e63946"
+        />
+
+      <div className="engine-grid" style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '24px', alignItems: 'start' }}>
         {/* Input Panel */}
         <CornerFrame color="#e63946" style={{ borderRadius: '12px' }}>
           <div className="glass-card" style={{ borderRadius: '12px', padding: '28px', borderColor: 'rgba(230,57,70,0.3)' }}>
@@ -385,7 +391,7 @@ export default function Engine2() {
 
       <style>{`
         @media (max-width: 900px) {
-          #engine2 > div { grid-template-columns: 1fr !important; }
+          #engine2 .engine-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
       <AnimatePresence>
@@ -396,6 +402,7 @@ export default function Engine2() {
           />
         )}
       </AnimatePresence>
+      </div>
     </section>
   );
 }

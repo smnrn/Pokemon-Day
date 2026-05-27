@@ -84,7 +84,7 @@ function App() {
 
   return (
     <ToastProvider>
-      <div className="pixel-grid" style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #0a0a1a 0%, #0d0d22 100%)' }}>
+      <div className="pixel-grid" style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #0a0a1a 0%, #0d0d22 100%)', overflowX: 'hidden' }}>
         <PokeballTransition visible={transitioning}/>
         <Navbar activeSection={activeSection} onNavigate={navigate}/>
 
