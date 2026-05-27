@@ -305,11 +305,28 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
   } else {
     const min = regionData.min;
     const max = regionData.max;
+    const totalIds = max - min + 1;
     const idPool = [];
     for (let id = min; id <= max; id++) idPool.push(id);
     
-    // Sample 60 Pokemon from the specified region
-    const sampleIds = idPool.sort(() => Math.random() - 0.5).slice(0, 60);
+    let sampleIds = idPool;
+    if (totalIds > 150) {
+      // Seeded random based on opponent team so it's deterministic for the same opponent
+      const teamString = opponentTeam.map(p => p.name).join('');
+      let seed = 0;
+      for (let i = 0; i < teamString.length; i++) {
+        seed = ((seed << 5) - seed) + teamString.charCodeAt(i);
+        seed |= 0;
+      }
+      seed = Math.abs(seed) || 1;
+      const seededRandom = () => {
+        const x = Math.sin(seed++) * 10000;
+        return x - Math.floor(x);
+      };
+      
+      sampleIds = idPool.sort(() => seededRandom() - 0.5).slice(0, 100);
+    }
+
     pool = await Promise.all(
       sampleIds.map(id => fetchWithRetry(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r => r.json()).catch(() => null))
     );
