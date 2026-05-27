@@ -18,8 +18,11 @@ The application is divided into three primary computational engines, along with 
     Paste your opponent's team to instantly run a deep Minimax/Heuristic analysis across the Pokédex. It calculates a dynamic 10-100 "Counter Score" based on STAB multipliers and defensive resistances, providing the absolute optimal 6 Pokémon to defeat them.
 *   **Engine 3: Battle Predictor & Ground Truth Logging**
     Predicts the winner between two teams with a calculated Confidence %. Log the real-world outcome of the battle directly to the database to train the telemetry dashboard.
-*   **Analytics & Telemetry Dashboard**
-    Tracks the AI's accuracy over time via a live Supabase database. Features include:
+*   **Live Animated Pokédex**
+    Features fully animated Generation 5 (Black/White) 2D pixel art sprites for a nostalgic, dynamic feel, complete with shiny toggles and live stat readouts.
+*   **Professor Oak's Analytics & Telemetry Dashboard**
+    A cyberpunk-themed, dark-mode research lab interface where Professor Oak provides AI-driven justifications for model selection. Tracks the AI's accuracy over time via a live Supabase database. Features include:
+    *   **Dynamic Pokeball Donut Charts:** Visually track Correct vs Incorrect Predictions inside a custom Pokeball UI.
     *   **Confusion Matrix:** Tracks True Positives (TP), True Negatives (TN), False Positives (FP), and False Negatives (FN).
     *   **Advanced Loss Metrics:** Evaluates the AI's prediction confidence using Brier Score and Log Loss.
     *   **Audit Logging:** An immutable ledger of every action, team generation, and battle logged on the platform.

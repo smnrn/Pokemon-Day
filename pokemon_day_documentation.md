@@ -34,10 +34,11 @@ The system is divided into three primary "Engines", each handling a distinct com
 **How it works:**
 1. **Opponent Profiling:** It imports the opponent's team (via plain text or Showdown format) and extracts their typing and base stats.
 2. **Deep Counter Analysis:** It iterates through the entire Pokédex (or a specific region) and calculates a dynamic **Counter Score (10-100)** for every single Pokémon.
-3. **Scoring Weight:** 
+3. **Scoring Weight & Relative Scaling:** 
    - *Offensive Score (40%):* Can the candidate hit the opponent for Super Effective damage using STAB (Same Type Attack Bonus)?
    - *Defensive Score (40%):* Does the candidate resist or possess an immunity to the opponent's primary types?
    - *Stat Bonus (20%):* A raw Base Stat Total modifier.
+   - *Relative Scaling Algorithm:* Rather than assigning raw scores that cap out at 99, the engine finds the absolute highest possible raw score in the current data pool. It assigns that optimal Pokémon a strict 99, and then grades every other Pokémon on a curve *relative* to that absolute max. This guarantees an authentic and mathematically sound spread of data.
 4. It outputs the top 6 highest-scoring Pokémon, assigning them custom moves specifically designed to hit the opponent's weaknesses.
 
 ### Engine 3: Battle Predictor & Ground Truth Logging
@@ -85,7 +86,7 @@ By tracking these, the developer can see if the algorithm is inherently biased t
 Beyond simple accuracy, the system uses complex mathematical loss functions to validate how *confident* the AI was when it was right or wrong:
 
 1. **Brier Score:** 
-   Measures the mean squared difference between the predicted probability (Confidence %) and the actual outcome (1 for Hit, 0 for Miss). 
+   Measures the mean squared difference between the predicted probability (Confidence %) and the actual outcome (1 for Correct, 0 for Incorrect). 
    *Goal:* A score as close to `0.0` as possible. If the AI is 99% confident and loses, the Brier Score is heavily penalized.
 2. **Log Loss (Cross-Entropy Loss):**
    Heavily penalizes the model for being confidently wrong. If the model says a team has a 10% chance to win, but they actually win, Log Loss increases significantly.
