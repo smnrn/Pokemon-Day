@@ -147,8 +147,8 @@ function AnimatedBattleScene() {
         <HpBar name="Charizard" level="75" hpPercent={100} color="#ffb703" />
       </div>
 
-      {/* Player HP Bar (Bottom Left aligned with Gengar) */}
-      <div style={{ position: 'absolute', bottom: '0px', left: '105px', zIndex: 3 }}>
+      {/* Player HP Bar (Top Left aligned with Gengar) */}
+      <div style={{ position: 'absolute', bottom: '190px', left: '105px', zIndex: 3 }}>
         <HpBar name="Gengar" level="80" hpPercent={85} color="#b19cd9" />
       </div>
 
