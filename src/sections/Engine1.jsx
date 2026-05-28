@@ -77,7 +77,7 @@ function PokemonCard({ pokemon, index, onClick }) {
 export default function Engine1() {
   const toast = useToast();
   const [gymType, setGymType] = useState('All Types');
-  const [region, setRegion] = useState('all');
+  const [regions, setRegions] = useState(['kanto', 'unova', 'paldea']);
   const [strategy, setStrategy] = useState('Balanced');
   const [teamSize, setTeamSize] = useState(6);
   const [model, setModel] = useState(() => localStorage.getItem('engine1_model') || 'kmeans');
@@ -96,9 +96,9 @@ export default function Engine1() {
     setLoading(true);
     setResult(null);
     try {
-      const data = await generateGymTeam({ gymType, strategy, teamSize, model, region });
+      const data = await generateGymTeam({ gymType, strategy, teamSize, model, regions });
       setResult(data);
-      await saveEngineOutput('gym_team_generator', { gymType, region, strategy, teamSize, model, ...data });
+      await saveEngineOutput('gym_team_generator', { gymType, regions, strategy, teamSize, model, ...data });
       toast('Team generated successfully.', 'success');
     } catch (e) {
       toast('Failed to fetch team data. Check your connection.', 'error');
@@ -154,23 +154,29 @@ export default function Engine1() {
               </select>
             </div>
 
-            {/* Region */}
+            {/* Region Multi-Select */}
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontFamily: 'Press Start 2P', fontSize: '6px', color: '#8888bb', marginBottom: '6px' }}>REGION</label>
-              <select className="sci-input" value={region} onChange={e => setRegion(e.target.value)}
-                style={{ borderColor: region !== 'all' ? 'rgba(255,214,10,0.5)' : undefined }}>
-                {REGIONS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-              </select>
-              {region !== 'all' && (
-                <div style={{
-                  marginTop: '6px', padding: '5px 10px',
-                  background: 'rgba(255,214,10,0.08)', borderRadius: '5px',
-                  borderLeft: '2px solid #ffd60a',
-                  fontFamily: 'Exo 2', fontSize: '11px', color: '#ffd60a',
-                }}>
-                  #{REGIONS.find(r => r.id === region)?.min}–#{REGIONS.find(r => r.id === region)?.max}
-                </div>
-              )}
+              <label style={{ display: 'block', fontFamily: 'Press Start 2P', fontSize: '6px', color: '#8888bb', marginBottom: '8px' }}>TARGET REGIONS</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {[{id: 'kanto', label: 'Kanto'}, {id: 'unova', label: 'Unova'}, {id: 'paldea', label: 'Paldea'}].map(r => (
+                  <button
+                    key={r.id}
+                    onClick={() => setRegions(prev => prev.includes(r.id) ? prev.filter(x => x !== r.id) : [...prev, r.id])}
+                    style={{
+                      padding: '8px',
+                      background: regions.includes(r.id) ? 'rgba(67, 97, 238, 0.2)' : 'rgba(10, 15, 36, 0.5)',
+                      border: `1px solid ${regions.includes(r.id) ? '#4361ee' : '#1a1a2e'}`,
+                      borderRadius: '8px',
+                      color: regions.includes(r.id) ? '#e8e8ff' : '#8888bb',
+                      fontFamily: 'Exo 2', fontSize: '12px', fontWeight: '500', cursor: 'pointer',
+                      transition: 'all 0.2s ease', flex: 1,
+                      boxShadow: regions.includes(r.id) ? '0 0 10px rgba(67,97,238,0.3)' : 'none'
+                    }}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Strategy */}

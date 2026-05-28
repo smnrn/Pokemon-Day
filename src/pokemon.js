@@ -190,18 +190,25 @@ function buildShowdownProfile(pokemon, opponentTypes = []) {
 }
 
 // ---- TEAM GENERATOR ENGINE ----
-export async function generateGymTeam({ gymType, strategy, teamSize, model, region }) {
-  const regionData = REGIONS.find(r => r.id === region) || REGIONS[0];
+export async function generateGymTeam({ gymType, strategy, teamSize, model, regions }) {
+  if (!Array.isArray(regions) || regions.length === 0) regions = ['all'];
+  const isAll = regions.includes('all');
+  const selectedRegions = regions.map(id => REGIONS.find(r => r.id === id)).filter(Boolean);
+  
   const team = [];
   const usedIds = new Set();
   let valid;
   
   if (gymType.toLowerCase() === 'all types') {
-    const min = regionData.min;
-    const max = regionData.max;
     const idPool = [];
-    for (let id = min; id <= max; id++) idPool.push(id);
-    const sampleIds = idPool.sort(() => Math.random() - 0.5).slice(0, Math.min(teamSize * 15, max - min + 1));
+    if (isAll) {
+      for (let id = 1; id <= 1025; id++) idPool.push(id);
+    } else {
+      selectedRegions.forEach(r => {
+        for (let id = r.min; id <= r.max; id++) idPool.push(id);
+      });
+    }
+    const sampleIds = idPool.sort(() => Math.random() - 0.5).slice(0, Math.min(teamSize * 15, idPool.length));
     const fetched = await Promise.all(
       sampleIds.map(id => fetchWithRetry(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r => r.json()).catch(() => null))
     );
@@ -213,11 +220,11 @@ export async function generateGymTeam({ gymType, strategy, teamSize, model, regi
       .map(p => ({ name: p.pokemon.name, url: p.pokemon.url }))
       .filter(p => !p.name.includes('-'))
       .filter(p => {
-        if (regionData.id === 'all') return true;
+        if (isAll) return true;
         const match = p.url.match(/\/pokemon\/(\d+)\//); 
         if (!match) return true;
         const id = parseInt(match[1], 10);
-        return id >= regionData.min && id <= regionData.max;
+        return selectedRegions.some(r => id >= r.min && id <= r.max);
       })
       .map(p => p.name);
       
