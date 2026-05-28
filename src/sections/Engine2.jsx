@@ -96,7 +96,7 @@ export default function Engine2() {
   const toast = useToast();
   const [inputText, setInputText] = useState('');
   const [useFullDex, setUseFullDex] = useState(true);
-  const [region, setRegion] = useState('all');
+  const [regions, setRegions] = useState(['kanto', 'unova', 'paldea']);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [opponentTeam, setOpponentTeam] = useState([]);
@@ -153,7 +153,7 @@ export default function Engine2() {
       setOpponentTeam(validOpp);
       
       const customPoolData = (!useFullDex && customPoolText) ? parseTeamInput(customPoolText) : null;
-      const counters = await generateCounters(validOpp, useFullDex, customPoolData, region);
+      const counters = await generateCounters(validOpp, useFullDex, customPoolData, regions);
       
       setResult(counters);
       const minimalCounters = counters.map(c => ({
@@ -260,10 +260,27 @@ export default function Engine2() {
               
               {useFullDex && (
                 <div style={{ marginBottom: '12px' }}>
-                  <label style={{ display: 'block', fontFamily: 'Press Start 2P', fontSize: '6px', color: '#8888bb', marginBottom: '8px' }}>REGION / GENERATION</label>
-                  <select className="sci-input" value={region} onChange={e => setRegion(e.target.value)} style={{ padding: '8px', fontSize: '10px' }}>
-                    {REGIONS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                  </select>
+                  <label style={{ display: 'block', fontFamily: 'Press Start 2P', fontSize: '6px', color: '#8888bb', marginBottom: '8px' }}>TARGET REGIONS</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {[{id: 'kanto', label: 'Kanto'}, {id: 'unova', label: 'Unova'}, {id: 'paldea', label: 'Paldea'}].map(r => (
+                      <button
+                        key={r.id}
+                        onClick={() => setRegions(prev => prev.includes(r.id) ? prev.filter(x => x !== r.id) : [...prev, r.id])}
+                        style={{
+                          padding: '8px',
+                          background: regions.includes(r.id) ? 'rgba(67, 97, 238, 0.2)' : 'rgba(10, 15, 36, 0.5)',
+                          border: `1px solid ${regions.includes(r.id) ? '#4361ee' : '#1a1a2e'}`,
+                          borderRadius: '8px',
+                          color: regions.includes(r.id) ? '#e8e8ff' : '#8888bb',
+                          fontFamily: 'Exo 2', fontSize: '10px', fontWeight: '500', cursor: 'pointer',
+                          transition: 'all 0.2s ease', flex: 1,
+                          boxShadow: regions.includes(r.id) ? '0 0 10px rgba(67,97,238,0.3)' : 'none'
+                        }}
+                      >
+                        {r.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
