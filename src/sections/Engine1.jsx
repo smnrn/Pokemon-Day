@@ -157,23 +157,35 @@ export default function Engine1() {
             {/* Region Multi-Select */}
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontFamily: 'Press Start 2P', fontSize: '6px', color: '#8888bb', marginBottom: '8px' }}>TARGET REGIONS</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {[{id: 'kanto', label: 'Kanto'}, {id: 'unova', label: 'Unova'}, {id: 'paldea', label: 'Paldea'}].map(r => (
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {REGIONS.map(r => (
                   <button
                     key={r.id}
-                    onClick={() => setRegions(prev => prev.includes(r.id) ? prev.filter(x => x !== r.id) : [...prev, r.id])}
+                    onClick={() => {
+                      if (r.id === 'all') setRegions(['all']);
+                      else {
+                        setRegions(prev => {
+                          const withoutAll = prev.filter(x => x !== 'all');
+                          if (withoutAll.includes(r.id)) {
+                            const toggled = withoutAll.filter(x => x !== r.id);
+                            return toggled.length === 0 ? ['all'] : toggled;
+                          }
+                          return [...withoutAll, r.id];
+                        });
+                      }
+                    }}
                     style={{
-                      padding: '8px',
+                      padding: '6px 10px',
                       background: regions.includes(r.id) ? 'rgba(67, 97, 238, 0.2)' : 'rgba(10, 15, 36, 0.5)',
                       border: `1px solid ${regions.includes(r.id) ? '#4361ee' : '#1a1a2e'}`,
                       borderRadius: '8px',
                       color: regions.includes(r.id) ? '#e8e8ff' : '#8888bb',
-                      fontFamily: 'Exo 2', fontSize: '12px', fontWeight: '500', cursor: 'pointer',
-                      transition: 'all 0.2s ease', flex: 1,
-                      boxShadow: regions.includes(r.id) ? '0 0 10px rgba(67,97,238,0.3)' : 'none'
+                      fontFamily: 'Exo 2', fontSize: '10px', fontWeight: '500', cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: regions.includes(r.id) ? '0 0 8px rgba(67,97,238,0.3)' : 'none'
                     }}
                   >
-                    {r.label}
+                    {r.id === 'all' ? 'All' : r.name.split(' ')[0]}
                   </button>
                 ))}
               </div>
