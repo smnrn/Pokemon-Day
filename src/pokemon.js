@@ -81,6 +81,31 @@ export const REGIONS = [
   { id: 'paldea',name: 'Paldea (Gen 9)',min: 906, max: 1025, gen: 9 },
 ];
 
+// ---- BANNED POKEMON ----
+// Legendaries, Mythicals, Ultra Beasts, and Paradox Pokémon that should never appear on generated teams
+export const BANNED_POKEMON = new Set([
+  // Gen 1 Legendaries
+  'articuno','zapdos','moltres','mewtwo','mew',
+  // Gen 2 Legendaries
+  'raikou','entei','suicune','lugia','ho-oh','celebi',
+  // Gen 3 Legendaries
+  'regirock','regice','registeel','latias','latios','kyogre','groudon','rayquaza','jirachi','deoxys',
+  // Gen 4 Legendaries
+  'uxie','mesprit','azelf','dialga','palkia','heatran','regigigas','giratina','cresselia','phione','manaphy','darkrai','shaymin','arceus',
+  // Gen 5 Legendaries
+  'victini','cobalion','terrakion','virizion','tornadus','thundurus','reshiram','zekrom','landorus','kyurem','keldeo','meloetta','genesect',
+  // Gen 6 Legendaries
+  'xerneas','yveltal','zygarde','diancie','hoopa','volcanion',
+  // Gen 7 Legendaries + Ultra Beasts
+  'tapu-koko','tapu-lele','tapu-bulu','tapu-fini','cosmog','cosmoem','solgaleo','lunala','nihilego','buzzwole','pheromosa','xurkitree','celesteela','kartana','guzzlord','necrozma','magearna','marshadow','poipole','naganadel','stakataka','blacephalon','zeraora',
+  // Gen 8 Legendaries
+  'zacian','zamazenta','eternatus','kubfu','urshifu','regieleki','regidrago','glastrier','spectrier','calyrex','zarude',
+  // Gen 9 Legendaries + Paradox
+  'wo-chien','chien-pao','ting-lu','chi-yu','koraidon','miraidon','walking-wake','iron-leaves','gouging-fire','raging-bolt','iron-boulder','iron-crown','terapagos','pecharunt','ogerpon',
+  // Paradox Pokémon
+  'great-tusk','scream-tail','brute-bonnet','flutter-mane','slither-wing','sandy-shocks','iron-treads','iron-bundle','iron-hands','iron-jugulis','iron-moth','iron-thorns','roaring-moon','iron-valiant',
+]);
+
 // ---- COMPETITIVE DATA ----
 export const COMPETITIVE_MOVES = {
   normal: ['Return', 'Double-Edge', 'Body Slam', 'Extreme Speed', 'Fake Out'],
@@ -184,8 +209,13 @@ function buildShowdownProfile(pokemon, opponentTypes = []) {
   
   // 5. Absolute fallback to raw API moves (very rare now)
   if (moves.length < 4 && pokemon.moves) {
+    // Z-Move prefixes and keywords to filter out
+    const isZMove = (name) => /^Z-/i.test(name) || /z-move/i.test(name) || 
+      ['breakneck-blitz','all-out-pummeling','supersonic-skystrike','acid-downpour','tectonic-rage','continental-crush','savage-spin-out','never-ending-nightmare','corkscrew-crash','inferno-overdrive','hydro-vortex','bloom-doom','gigavolt-havoc','shattered-psyche','subzero-slammer','devastating-drake','black-hole-eclipse','twinkle-tackle','catastropika','sinister-arrow-raid','malicious-moonsault','oceanic-operetta','guardian-of-alola','soul-stealing-7-star-strike','stoked-sparksurfer','pulverizing-pancake','extreme-evoboost','genesis-supernova','10000000-volt-thunderbolt','light-that-burns-the-sky','searing-sunraze-smash','menacing-moonraze-maelstrom','lets-snuggle-forever','splintered-stormshards','clangorous-soulblaze'].includes(name);
+    
     const actualMoves = pokemon.moves
       .filter(pm => pm.version_group_details.some(v => v.move_learn_method.name === 'level-up' || v.move_learn_method.name === 'machine'))
+      .filter(pm => !isZMove(pm.move.name))
       .map(pm => pm.move.name.split('-').map(pt => pt.charAt(0).toUpperCase() + pt.slice(1)).join(' '))
       .filter(m => !moves.includes(m))
       .sort(() => 0.5 - Math.random());
@@ -343,7 +373,8 @@ export async function generateGymTeam({ gymType, strategy, teamSize, model, regi
     try {
       const s = await fetchWithRetry(p.species.url).then(r => r.json());
       if (s.is_legendary || s.is_mythical) continue;
-      if (s.name.startsWith('iron-') || ['great-tusk', 'scream-tail', 'brute-bonnet', 'flutter-mane', 'slither-wing', 'sandy-shocks', 'roaring-moon', 'walking-wake', 'gouging-fire', 'raging-bolt'].includes(s.name)) continue;
+      // Hardcoded ban list catches Ultra Beasts, Paradox, and anything the API misses
+      if (BANNED_POKEMON.has(p.name)) continue;
       
       // Apply synergy penalty — skip if adding this mon creates too many shared weaknesses
       const synergyPenalty = getSynergyPenalty(p);
@@ -547,7 +578,7 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
     try {
       const s = await fetchWithRetry(p.species.url).then(r => r.json());
       if (s.is_legendary || s.is_mythical) continue;
-      if (s.name.startsWith('iron-') || ['great-tusk', 'scream-tail', 'brute-bonnet', 'flutter-mane', 'slither-wing', 'sandy-shocks', 'roaring-moon', 'walking-wake', 'gouging-fire', 'raging-bolt'].includes(s.name)) continue;
+      if (BANNED_POKEMON.has(p.name)) continue;
       
       // Type diversity check: no more than 2 counters sharing the same primary type
       const primaryType = p.types[0];
