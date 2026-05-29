@@ -416,17 +416,25 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
     opponentTeam.forEach(opp => {
       // Offensive: Can I hit them super effectively with my STAB?
       const myBestAttack = Math.max(...p.types.map(t => getTotalEffectiveness([t], opp.types || [])));
-      if (myBestAttack >= 2) offensiveScore += myBestAttack * 10;
+      if (myBestAttack >= 4) offensiveScore += 80;
+      else if (myBestAttack >= 2) offensiveScore += 35;
+      else if (myBestAttack === 1) offensiveScore += 5;
+      else if (myBestAttack > 0) offensiveScore -= 15;
+      else offensiveScore -= 30;
 
       // Defensive: Can I resist their STAB?
       const theirBestAttack = Math.max(...(opp.types || []).map(t => getTotalEffectiveness([t], p.types)));
-      if (theirBestAttack < 1) defensiveScore += (1 - theirBestAttack) * 20; // High points for immunity (0) or 4x resist (0.25)
-      else if (theirBestAttack >= 2) defensiveScore -= 20; // Penalize if I'm weak to them
+      if (theirBestAttack === 0) defensiveScore += 40;
+      else if (theirBestAttack <= 0.25) defensiveScore += 30;
+      else if (theirBestAttack <= 0.5) defensiveScore += 15;
+      else if (theirBestAttack === 1) defensiveScore += 0;
+      else if (theirBestAttack >= 2) defensiveScore -= 30;
+      else if (theirBestAttack >= 4) defensiveScore -= 60;
     });
 
     // Heavily weight Base Stats to prefer fully evolved Pokemon
     const bstBonus = (p.bst / 720) * 80; 
-    const rawScore = (offensiveScore * 0.8) + (defensiveScore * 1.2) + bstBonus + speedBonus;
+    const rawScore = (offensiveScore * 1.5) + (defensiveScore * 1.0) + bstBonus + speedBonus;
     
     const matchups = opponentTeam.map(opp => ({
       name: opp.name,
@@ -473,9 +481,15 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
         if (moves.includes(m)) guessedType = type;
       });
 
-      const mult = opponentTypes.reduce((sum, ot) => sum + (TYPE_CHART[guessedType]?.[ot] || 1), 0);
-      if (mult > highestMultiplier) {
-        highestMultiplier = mult;
+      // Calculate effectiveness against each opponent individually
+      let totalMult = 0;
+      opponentTeam.forEach(opp => {
+        const eff = getTotalEffectiveness([guessedType], opp.types || []);
+        totalMult += eff;
+      });
+
+      if (totalMult > highestMultiplier) {
+        highestMultiplier = totalMult;
         bestMove = m;
       }
     });
