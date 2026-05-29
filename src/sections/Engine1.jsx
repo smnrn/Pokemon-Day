@@ -104,7 +104,7 @@ function calculateModelMetrics(team) {
 export default function Engine1() {
   const toast = useToast();
   const [gymType, setGymType] = useState('All Types');
-  const [regions, setRegions] = useState(['kanto', 'unova', 'paldea']);
+  const [region, setRegion] = useState('kanto');
   const [strategy, setStrategy] = useState('Balanced');
   const [teamSize, setTeamSize] = useState(6);
   const [model, setModel] = useState(() => localStorage.getItem('engine1_model') || 'kmeans');
@@ -123,9 +123,9 @@ export default function Engine1() {
     setLoading(true);
     setResult(null);
     try {
-      const data = await generateGymTeam({ gymType, strategy, teamSize, model, regions });
+      const data = await generateGymTeam({ gymType, strategy, teamSize, model, regions: [region] });
       setResult(data);
-      await saveEngineOutput('gym_team_generator', { gymType, regions, strategy, teamSize, model, ...data });
+      await saveEngineOutput('gym_team_generator', { gymType, regions: [region], strategy, teamSize, model, ...data });
       toast('Team generated successfully.', 'success');
     } catch (e) {
       toast('Failed to fetch team data. Check your connection.', 'error');
@@ -181,41 +181,12 @@ export default function Engine1() {
               </select>
             </div>
 
-            {/* Region Multi-Select */}
+            {/* Region Select */}
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontFamily: 'Press Start 2P', fontSize: '6px', color: '#8888bb', marginBottom: '8px' }}>TARGET REGIONS</label>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {REGIONS.map(r => (
-                  <button
-                    key={r.id}
-                    onClick={() => {
-                      if (r.id === 'all') setRegions(['all']);
-                      else {
-                        setRegions(prev => {
-                          const withoutAll = prev.filter(x => x !== 'all');
-                          if (withoutAll.includes(r.id)) {
-                            const toggled = withoutAll.filter(x => x !== r.id);
-                            return toggled.length === 0 ? ['all'] : toggled;
-                          }
-                          return [...withoutAll, r.id];
-                        });
-                      }
-                    }}
-                    style={{
-                      padding: '6px 10px',
-                      background: regions.includes(r.id) ? 'rgba(67, 97, 238, 0.2)' : 'rgba(10, 15, 36, 0.5)',
-                      border: `1px solid ${regions.includes(r.id) ? '#4361ee' : '#1a1a2e'}`,
-                      borderRadius: '8px',
-                      color: regions.includes(r.id) ? '#e8e8ff' : '#8888bb',
-                      fontFamily: 'Exo 2', fontSize: '10px', fontWeight: '500', cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      boxShadow: regions.includes(r.id) ? '0 0 8px rgba(67,97,238,0.3)' : 'none'
-                    }}
-                  >
-                    {r.id === 'all' ? 'All' : r.name.split(' ')[0]}
-                  </button>
-                ))}
-              </div>
+              <label style={{ display: 'block', fontFamily: 'Press Start 2P', fontSize: '6px', color: '#8888bb', marginBottom: '6px' }}>TARGET REGION</label>
+              <select className="sci-input" value={region} onChange={e => setRegion(e.target.value)}>
+                {REGIONS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+              </select>
             </div>
 
             {/* Strategy */}
