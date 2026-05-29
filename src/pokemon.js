@@ -436,19 +436,10 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
     return { ...p, rawScore, matchups };
   });
 
-  // Relative Scaling: The absolute best counter in the pool sets the 99 ceiling
-  const maxRaw = Math.max(1, ...scoredRaw.map(p => p.rawScore));
-
-  const scored = scoredRaw.map(p => {
-    let normalizedScore = Math.round((p.rawScore / maxRaw) * 99);
-    normalizedScore = Math.min(99, Math.max(1, normalizedScore));
-    return { ...p, counterScore: normalizedScore };
-  });
-
-  // Pick top 6 absolute best scores (excluding legendaries)
-  const sortedScored = scored.sort((a, b) => b.counterScore - a.counterScore);
+  // Pick top 6 absolute best scores (excluding legendaries) based on raw score
+  const sortedRaw = scoredRaw.sort((a, b) => b.rawScore - a.rawScore);
   const top6 = [];
-  for (const p of sortedScored) {
+  for (const p of sortedRaw) {
     if (top6.length >= 6) break;
     try {
       const s = await fetchWithRetry(p.species.url).then(r => r.json());
@@ -459,6 +450,13 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
       top6.push(p);
     }
   }
+
+  // Relative Scaling: The absolute best VALID counter sets the 99 ceiling
+  const maxValidRaw = top6.length > 0 ? top6[0].rawScore : 1;
+  top6.forEach(p => {
+    let normalizedScore = Math.round((p.rawScore / maxValidRaw) * 99);
+    p.counterScore = Math.min(99, Math.max(1, normalizedScore));
+  });
 
   // For each in top 6, build Master-tier Showdown stats
   top6.forEach(p => {
