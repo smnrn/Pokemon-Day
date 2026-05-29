@@ -165,22 +165,34 @@ function buildShowdownProfile(pokemon, opponentTypes = []) {
   });
 
   let moves = Array.from(movePool).sort(() => 0.5 - Math.random());
+
+  // 3. If we don't have 4 moves, grab ANY other competitive move they can learn
+  if (moves.length < 4) {
+    const allCompMoves = Object.values(COMPETITIVE_MOVES).flat().filter(canLearn).sort(() => 0.5 - Math.random());
+    allCompMoves.forEach(m => {
+       if (!moves.includes(m) && moves.length < 4) moves.push(m);
+    });
+  }
+
+  // 4. Guaranteed universal fillers if still < 4
   if (moves.length < 4) {
     const fillers = ['Protect', 'Substitute', 'Rest', 'Toxic', 'Recover', 'Swords Dance', 'Calm Mind', 'Nasty Plot', 'Dragon Dance'].filter(canLearn);
-    moves = [...moves, ...fillers];
+    fillers.forEach(m => {
+       if (!moves.includes(m) && moves.length < 4) moves.push(m);
+    });
   }
   
+  // 5. Absolute fallback to raw API moves (very rare now)
   if (moves.length < 4 && pokemon.moves) {
-    // Pick the most powerful moves available
     const actualMoves = pokemon.moves
-      .filter(pm => {
-        // Only consider level-up or machine moves, and prefer high power if we could check it
-        return pm.version_group_details.some(v => v.move_learn_method.name === 'level-up' || v.move_learn_method.name === 'machine');
-      })
+      .filter(pm => pm.version_group_details.some(v => v.move_learn_method.name === 'level-up' || v.move_learn_method.name === 'machine'))
       .map(pm => pm.move.name.split('-').map(pt => pt.charAt(0).toUpperCase() + pt.slice(1)).join(' '))
       .filter(m => !moves.includes(m))
       .sort(() => 0.5 - Math.random());
-    moves = [...moves, ...actualMoves.slice(0, 4 - moves.length)];
+    
+    actualMoves.forEach(m => {
+      if (moves.length < 4) moves.push(m);
+    });
   }
   
   if (moves.length === 0) moves = ['Tackle'];
@@ -299,9 +311,11 @@ export async function generateGymTeam({ gymType, strategy, teamSize, model, regi
   return { team, model, metricLabel, metricValue };
 }
 
-export async function generateCounters(opponentTeam, useFullDex, customPoolData = null, region = 'all') {
+export async function generateCounters(opponentTeam, useFullDex, customPoolData = null, regions = ['all']) {
   const opponentTypes = opponentTeam.flatMap(p => p.types || []);
-  const regionData = REGIONS.find(r => r.id === region) || REGIONS[0];
+  if (!Array.isArray(regions) || regions.length === 0) regions = ['all'];
+  const isAll = regions.includes('all');
+  const selectedRegions = regions.map(id => REGIONS.find(r => r.id === id)).filter(Boolean);
   
   let pool;
   if (customPoolData && customPoolData.length > 0) {
@@ -310,14 +324,17 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
       sample.map(p => fetchWithRetry(`https://pokeapi.co/api/v2/pokemon/${p.name}`).then(r => r.json()).catch(() => null))
     );
   } else {
-    const min = regionData.min;
-    const max = regionData.max;
-    const totalIds = max - min + 1;
     const idPool = [];
-    for (let id = min; id <= max; id++) idPool.push(id);
+    if (isAll) {
+      for (let id = 1; id <= 1025; id++) idPool.push(id);
+    } else {
+      selectedRegions.forEach(r => {
+        for (let id = r.min; id <= r.max; id++) idPool.push(id);
+      });
+    }
     
     let sampleIds = idPool;
-    if (totalIds > 150) {
+    if (idPool.length > 150) {
       // Seeded random based on opponent team so it's deterministic for the same opponent
       const teamString = opponentTeam.map(p => p.name).join('');
       let seed = 0;
