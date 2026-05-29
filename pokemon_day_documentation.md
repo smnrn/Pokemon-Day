@@ -46,28 +46,23 @@ Documentation for the three required main systems — Team Engine, Challenger Se
 All three engines share the same data backbone. 
 
 ### 4.1 Data source & retrieval (PokéAPI)
-*   **Source:** PokéAPI (live retrieval and internal memory caching).
-*   **Retrieval process:** The application fetches from `https://pokeapi.co/api/v2/pokemon/{id}` and `/pokemon-species/{id}`. The data is retrieved live and cached in browser memory to optimize subsequent requests.
-*   **Attributes stored:** Name, types, native region (original generation), base stats (HP, Attack, Defense, Sp. Atk, Sp. Def, Speed), abilities, and movesets.
+*   **Source:** PokéAPI (live retrieval and internal memory cached copy).
+*   **Retrieval process:** Data is fetched from `https://pokeapi.co/api/v2/pokemon/{id}` and `/pokemon-species/{id}`. The application fetches data live and caches it locally to prevent redundant API calls.
+*   **Attributes stored:** Name, types, native region / original generation, and stats (HP, Attack, Defense, Sp. Atk, Sp. Def, Speed).
 
 ### 4.2 Native region mapping
 *   **Method:** Native region is assigned by mapping the Pokémon's national Pokédex ID to its original generation (e.g., Gen 1 = Kanto: 1-151, Gen 5 = Unova: 494-649, Gen 9 = Paldea: 906-1025).
-*   **Rule enforced:** Only Pokémon native to Kanto, Unova, or Paldea are eligible to be drafted into teams when the strict region filter is applied.
+*   **Rule enforced:** Only Pokémon native to the selected/assigned region are eligible.
 
 ### 4.3 Battle restriction filtering
-*   **Method:** The engine cross-references the retrieved Pokémon with a strict hardcoded banlist of Legendaries, Mythicals, and Paradox Pokémon.
-*   **Flags used:** `is_legendary` and `is_mythical` flags from the `/pokemon-species/` endpoint are strictly rejected. Forms containing `-mega`, `-gmax`, or other banned mechanics are automatically excluded from the generation pool.
+*   **Method:** Banned Pokémon and mechanics are excluded by checking the `is_legendary` and `is_mythical` flags from the `/pokemon-species/` endpoint, and filtering out forms containing `-mega`, `-gmax`, or Paradox identifiers.
+*   **Flags used:** `is_legendary`, `is_mythical`, and string matching for restricted statuses.
 
 ### 4.4 Data cleaning
-*   **Method:** String cleaning is applied to Pokémon names to ensure compatibility with Pokémon Showdown formatting (e.g., replacing hyphens in names like "Tapu-Koko", capitalizing the first letter). Missing values (like missing hidden abilities) are defaulted to their primary ability.
+*   **Method:** String cleaning is applied to format Pokémon names for Pokémon Showdown compatibility (e.g., capitalization, replacing hyphens). Missing values default to primary stats/abilities.
 
 ### 4.5 Feature engineering
-*   **Derived features:** 
-    - `Base Stat Total (BST)`: The sum of all 6 base stats.
-    - `Offensive Score`: Calculated using (Attack + Sp. Atk + Speed).
-    - `Defensive / Bulk Score`: Calculated using (HP + Defense + Sp. Def).
-    - `Resistance Score`: The number of types the Pokémon resists vs. types it is weak to.
-    - `Strategic Role`: Categorical label (Sweeper, Tank, Support, Pivot) assigned based on stat distributions.
+*   **Derived features:** Base Stat Total (BST), Offensive Score (Atk + SpA + Spe), Defensive Score (HP + Def + SpD), Resistance Score, and assigned strategic combat roles (Sweeper, Tank, Pivot, Support).
 
 ### 4.6 Data pipeline diagram (required)
 
@@ -87,7 +82,7 @@ flowchart TD
 
 ---
 
-## 5. System Block — Team Engine (Engine 1)
+## 5. System Block — Team Engine
 
 ### 5.1 Purpose
 Generate a Gym Leader's defending team. Answers: given a region and type specialization, what 6-Pokémon team should be generated?
@@ -95,161 +90,256 @@ Generate a Gym Leader's defending team. Answers: given a region and type special
 ### 5.2 Inputs
 | Input | Description |
 | :--- | :--- |
-| Pokémon region | Kanto, Unova, Paldea (multi-select allowed) |
+| Pokémon region | Kanto, Unova, Paldea |
 | Type specialization | Water, Fire, Electric, Steel, Ghost, Dragon, etc. |
-| Native region filter | Enforces only Pokémon native to the selected regions |
-| Battle restrictions | Excludes all banned Pokémon/mechanics |
-| Pokémon data | Fetched from PokéAPI |
+| Native region filter | Only Pokémon native to the selected region |
+| Battle restrictions | Excludes banned Pokémon/mechanics |
+| Pokémon data | From PokéAPI |
 
 ### 5.3 Outputs
 | Output | Description |
 | :--- | :--- |
-| Gym Leader region / type | The selected region and type specialization |
+| Gym Leader region / type | Selected region and specialization |
 | Generated team | 6 Pokémon for the defending lineup |
-| Native region | The original generation the Pokémon belongs to |
-| Types | Type 1 and Type 2 |
+| Native region (per Pokémon) | Original/native region shown |
+| Types | Type 1 and Type 2 (if any) |
 | Basic stats | HP, Atk, Def, Sp. Atk, Sp. Def, Speed |
-| Model used | Rule-Based Scoring / K-Means logic |
-| Explanation | Defines the Pokémon's designated competitive role (Sweeper, Tank, Pivot, Support) |
+| Model used | Logic/model that generated the team |
+| Explanation | Why each Pokémon was selected |
 
 ### 5.4 Native-region requirement
-Teams must use only Pokémon native to the selected regions (Kanto, Unova, Paldea). The engine prioritizes Pokémon that match the type specialization natively belonging to those regions. Non-native Pokémon are explicitly blocked from appearing in the generated team.
+Teams must use only Pokémon native to the selected region and matching the type specialization, subject to restrictions. Example — Paldea + Water → prioritize Paldea-native Water types (e.g., Quaquaval line, Palafin); never pull a non-Paldea Pokémon just because it appears elsewhere.
 
 ### 5.5 Models used
+**Candidate models (choose and justify one or more).**
 
 | Model | What it is | Possible use here |
 | :--- | :--- | :--- |
-| **Rule-Based Scoring** | Explicit weighted rules | Filter/score by region, type, and stats |
 | K-Means Clustering | Unsupervised grouping by stat similarity | Group Pokémon into roles / stat profiles |
+| K-NN | Labels an item from its k most similar neighbors | Find Pokémon similar to strong Gym Leader profiles |
+| Cosine Similarity | Angle between two stat vectors | Recommend similar stat patterns |
+| Gower's Distance | Similarity for mixed numeric + categorical data | Compare by type, region, and stats together |
+| Decision Tree | Rule-based splitting tree | Classify Pokémon into roles |
+| Random Forest | Ensemble of decision trees | Rank Pokémon by predicted usefulness |
+| **Rule-Based Scoring** | Explicit weighted rules | Filter/score by region, type, stats |
 
-**Model deep-dive — Rule-Based Scoring & Heuristics**
-*   **What it does:** The engine uses rule-based thresholds to classify the Pokémon into optimal competitive roles. For example, if a Pokémon's Offensive Stat Score is significantly higher than its Defensive Score (and Speed > 80), the engine explicitly categorizes it as a "Sweeper". It then uses rule-based logic to assign optimal EVs, Natures, Items, and competitively viable moves based on that role.
+**Model deep-dive — Rule-Based Scoring**
+*   **What it does:** Uses explicit mathematical thresholds to classify Pokémon and assign roles based on their aggregate stat totals and type matchups.
+*   **Why it fits the Team Engine:** Provides deterministic, highly accurate role classification (Sweeper, Tank) ensuring a balanced 6-Pokémon team every time without relying on heavy iterative training data.
+*   **Input features:** HP, Attack, Defense, Sp. Atk, Sp. Def, Speed.
+*   **How it produces output:** Calculates an Offensive Score and Defensive Score. If Offense is 30% higher than Defense and Speed > 80, it outputs the "Sweeper" role and assigns appropriate EVs and items.
+*   **Evaluation metric(s) & result:** Team Balance Score (custom heuristic ensuring all 4 combat roles are present).
 
 ### 5.6 Engine logic
-The engine queries the entire dataset of valid Pokémon matching the region and type criteria. It sorts them, ensures there are no banned species, and evaluates their stats to assign a strategic combat role. It strictly equips them with optimal competitive moves by matching their typing against a curated dictionary of competitive moves.
+Step-by-step: load PokéAPI data → filter region (Gen 1, Gen 5, Gen 9) → filter type → apply battle restrictions (remove legendaries/megas) → run Rule-Based Scoring model to calculate Base Stat Totals and assign combat roles → output 6 optimized Pokémon.
 
 ### 5.7 Samples & evidence
-(The user generates the team via the dashboard and clicks "Copy to Showdown"). The output contains properly formatted IVs, EVs, Items, Natures, and Moves ready for import.
+*   **Sample generated Gym Leader team:** [See Web UI Dashboard / Database Logs]
+*   **Input/output screenshots:** [Link to live deployment / Showdown Copy button output]
 
 ---
 
-## 6. System Block — Challenger Selection Engine (Engine 2)
+## 6. System Block — Challenger Selection Engine
 
 ### 6.1 Purpose
-Generates a mathematically optimal Counter-Pick team to defeat an opposing Gym Leader's team. Answers: given an opponent's specific lineup, what 6 Pokémon offer the highest statistical probability of winning?
+Recommend a challenger lineup before facing a Gym Leader. Answers: given the Gym Leader's defending team, which Pokémon increase the challenger's chance of winning?
 
 ### 6.2 Inputs
 | Input | Description |
 | :--- | :--- |
-| Opponent Team Data | The 6 Pokémon on the defending team |
-| Region Filter | Limits counter-picks to Kanto, Unova, Paldea |
-| Type Data | Type matchups (weaknesses, resistances, immunities) |
+| Gym Leader team | The defending lineup |
+| Challenger region | Region assigned to the attacking team |
+| Challenger pool | PokéAPI data filtered by native region + restrictions |
+| Native region filter | Only Pokémon native to the challenger's region |
+| Battle restrictions | Excludes banned Pokémon/mechanics |
+| Model / scoring logic | Recommendation method |
 
 ### 6.3 Outputs
 | Output | Description |
 | :--- | :--- |
-| Counter-Pick Team | 6 Pokémon optimized to defeat the input team |
-| Counter Score | A 10-99 graded score indicating the pick's viability |
-| Best Counter Move | The most effective move the Pokémon has against the opponent |
-| Matchups | A breakdown of exactly which opponent Pokémon this pick counters |
+| Target Gym Leader | Who is being challenged |
+| Gym Leader team | Opponent lineup |
+| Challenger region | Assigned region |
+| Recommended lineup | Suggested challenger Pokémon |
+| Native region (per Pokémon) | Original/native region shown |
+| Counter score | Numeric/ranked score (if applicable) |
+| Advantage explanation | Type / stat / speed / defensive advantage |
+| Model used | Logic/model used |
 
-### 6.4 Native region requirement
-Functions exactly like Engine 1. The counter-picks can be restricted strictly to Pokémon originally natively found in Kanto, Unova, and Paldea.
+### 6.4 Native-region requirement
+Recommend only Pokémon native to the challenger's assigned region (Kanto, Unova, Paldea). Same rule as the Team Engine — no off-region picks.
 
 ### 6.5 Models used
-**Model deep-dive — Minimax / Rule-Based Heuristics**
-*   **What it does:** It iterates through the entire valid Pokédex and calculates a "Counter Score" based on Offensive advantage (STAB super-effective hits), Defensive advantage (Resistances/Immunities), and Base Stat Totals. It finds the absolute maximum raw score in the dataset and scales every other Pokémon's score relative to that maximum to assign a 10-99 grade.
+**Candidate models.**
+
+| Model | What it is | Possible use here |
+| :--- | :--- | :--- |
+| K-NN | Labels from k most similar items | Find similar successful counters |
+| Gower's Distance | Mixed-type similarity | Compare type, stats, region, role |
+| Cosine Similarity | Stat-vector similarity | Compare stat profiles |
+| Decision Tree | Rule-based splitting tree | Classify as strong/neutral/weak counter |
+| Random Forest | Ensemble of trees | Rank possible challengers |
+| **Rule-Based Scoring** | Explicit advantage rules | Type advantage, resistance, weakness, stats |
+
+**Model deep-dive — Rule-Based Scoring (Minimax Heuristics)**
+*   **What it does:** Iterates through every valid Pokémon and assigns them a raw score based on how many super-effective hits and resistances they have against the target team.
+*   **Why it fits the Challenger Engine:** Type advantage is the most critical factor in Pokémon battles. A strict rule-based heuristic perfectly models the Rock-Paper-Scissors mechanics of the game.
+*   **Input features:** Opponent Team Types, Challenger Pool Base Stats, Type Matchup Chart.
+*   **How it produces output:** Calculates an Offensive advantage score (STAB coverage) and Defensive advantage score (Resistances), adds a BST modifier, finds the maximum possible score, and normalizes all Pokémon to a 10-99 scale. It outputs the top 6.
+*   **Evaluation metric(s) & result:** Counter Score Distribution (10-99 graded curve).
 
 ### 6.6 Engine logic
-For every valid Pokémon, it checks its typing against the opponent's team typing. If it hits super-effectively, it gains points. If it resists the opponent's STAB, it gains points. It ranks the entire valid Pokédex and returns the top 6 highest-scoring Pokémon.
+Step-by-step: take Gym Leader team → load challenger pool (region + restriction filtered) → check type matchups (super-effective / resistances) → score counters → rank and scale out of 99 → output top 6 lineup with assigned counter moves.
 
 ### 6.7 Samples & evidence
-The dashboard renders the Counter Score out of 99, highlighting exactly which opposing Pokémon the generated counter-pick is designed to defeat.
+*   **Sample challenger lineup:** [See Web UI Dashboard / Database Logs]
+*   **Input/output screenshots:** [Link to live deployment]
 
 ---
 
-## 7. System Block — Battle Prediction Engine (Engine 3)
+## 7. System Block — Battle Prediction Engine
 
 ### 7.1 Purpose
-Predicts the outcome of a hypothetical battle between two teams, logging the predicted winner and confidence score for analytical validation.
+Predict the expected winner before each battle, and store the ground truth (actual result) after. Answers: given both lineups, who is expected to win?
 
 ### 7.2 Inputs recorded before battle
 | Input | Description |
 | :--- | :--- |
-| Team A Data | The 6 Pokémon (names, stats, types) of Battler A |
-| Team B Data | The 6 Pokémon (names, stats, types) of Battler B |
+| Match ID | Unique battle identifier |
+| Gym Leader / Challenger names | Participants |
+| Gym Leader region & type | Specialization |
+| Challenger region | Assigned region |
+| Gym Leader lineup | Pokémon used |
+| Challenger lineup | Pokémon used |
+| Engine(s) used | Team / Challenger / other |
 
 ### 7.3 Prediction output (saved before battle)
-Outputs the Predicted Winner (Team A or Team B) and a Confidence Percentage (e.g., 85% Confidence).
+| Output | Description |
+| :--- | :--- |
+| Predicted winner | Expected winner |
+| Confidence score | e.g. 0.70 / 70% |
+| Prediction reason | Key factors |
+| Timestamp | When recorded |
+*Rule: predictions must be recorded before the battle starts. Post-start predictions don't count.*
 
 ### 7.4 Ground truth output (saved after battle)
-When the real Pokémon Showdown battle concludes, the user logs the *Actual Winner*. This is compared against the prediction to determine True Positives, False Positives, etc.
+| Output | Description |
+| :--- | :--- |
+| Actual winner | From Showdown result |
+| Correct / incorrect | Prediction vs. actual |
+| Replay link | Showdown replay/log |
+| Screenshot / photo link | Proof |
+| Final score | e.g. 2–0 |
+| Number of turns | Battle length |
+| Timestamp | When recorded |
 
 ### 7.5 Models used
-**Model deep-dive — Comparative Heuristic Scoring**
-*   **What it does:** Calculates the aggregate stat totals and type matchup advantages of Team A against Team B. It calculates the delta (difference) between the two teams' aggregate scores, runs it through a sigmoid-style probability distribution curve, and returns a percentage confidence.
+**Candidate models.**
+
+| Model | What it is | Possible use here |
+| :--- | :--- | :--- |
+| Decision Tree | Explainable rule-based tree | Predict win/loss with clear rules |
+| Random Forest | Ensemble of trees | Predict winner via tree voting |
+| K-NN | Labels from similar matchups | Predict from past similar battles |
+| Naive Bayes | Probabilistic (Bayes' theorem) | Probability of winning |
+| Logistic Regression | Linear win-probability model | Estimate win probability |
+| **Rule-Based Classifier** | Explicit if/then rules | Type coverage, weaknesses, balance |
+
+**Model deep-dive — Rule-Based Classifier**
+*   **What it does:** Compares the aggregate Base Stat Totals and cumulative Type Advantage Scores of both teams.
+*   **Why it fits the Prediction Engine:** Without thousands of prior battle logs to train a Logistic Regression model on day one, a heuristic classifier calculates immediate mathematical probabilities based on the known rules of the game.
+*   **Input features:** Team A Aggregate Stats, Team A Types, Team B Aggregate Stats, Team B Types.
+*   **How it produces output:** Calculates a score delta (Team A Score minus Team B Score). Converts this delta using a probability distribution curve into a Confidence Percentage, selecting the team with the higher score as the predicted winner.
+*   **Evaluation metric(s) & result:** Accuracy, Confusion Matrix, Precision, Recall, F1-Score, Brier Score. (Continuously tracked via the Analytics Dashboard).
 
 ### 7.6 Engine logic
-Aggregates the raw power and type synergies of both teams. If Team A has a significantly higher raw score and type advantage, the confidence percentage scales heavily in their favor.
+Step-by-step: read both lineups → extract matchup features (BST and type advantage deltas) → run Rule-Based Classifier model → output predicted winner + confidence → log to `predictions` table before battle → after battle, log actual winner to `ground_truth` → recompute metrics/confusion matrix.
 
 ### 7.7 Samples & evidence
-Logged into the Supabase database. The Prediction Engine clearly dictates the predicted winner *before* the match is officially logged.
+*   **Sample prediction record:** [See Supabase `predictions` table]
+*   **Sample ground truth record:** [See Supabase `ground_truth` table]
+*   **Sample confusion matrix / evaluation metrics:** [See Analytics UI]
+*   **Graphs / dashboard:** [Link to live deployment /analytics route]
 
 ---
 
 ## 8. Database, Logs & Audit Trail
 
-Every engine action writes to a remote Supabase PostgreSQL database.
+Storage uses PostgreSQL hosted on Supabase.
 
-*   **`engine_outputs`:** Logs every generated Gym Team and Counter-Pick team, including the timestamp, inputs used, and the generated JSON data.
-*   **`predictions`:** Logs the output of Engine 3 (Team A, Team B, Predicted Winner, Confidence %).
-*   **`ground_truth`:** Logs the actual outcome of the battle, linking it back to the original prediction ID.
-*   **`audit_logs`:** A global, tamper-proof table tracking every single event (`action_type`, `table_name`, `timestamp`) for complete observability.
+### 8.1 Pokémon Data
+`pokemon_id, pokemon_name, native_region, generation, type_1, type_2, hp, attack, defense, special_attack, special_defense, speed, restricted_status, source`
+
+### 8.2 Team Engine Output
+`team_output_id, section, group_name, gym_leader, region, type_specialization, generated_team, native_region_validation, model_used, metric_used, timestamp`
+
+### 8.3 Challenger Selection Output
+`challenger_output_id, section, group_name, target_gym_leader, challenger_region, gym_leader_team, recommended_challenger_team, native_region_validation, model_used, counter_score, timestamp`
+
+### 8.4 Prediction
+`match_id, gym_leader, challenger, gym_leader_team, challenger_team, predicted_winner, confidence_score, prediction_reason, timestamp_before_battle`
+
+### 8.5 Ground Truth
+`match_id, actual_winner, correct_prediction, final_score, number_of_turns, replay_link, screenshot_or_photo_link, timestamp_after_battle`
+
+### 8.6 Audit Log
+*(Strongly encouraged — shows records weren't changed without accountability)*
+`audit_id, user_or_operator, action_done, affected_record, old_value, new_value, timestamp`
 
 ---
 
 ## 9. How to Use the System
-1. Open the application.
-2. Use **Engine 1** to select regions and a Type Specialization to generate a Gym Team.
-3. Use **Engine 2** to input the opposing team and find optimal counter-picks.
-4. Copy the generated teams using the "Copy to Showdown" button.
-5. Use **Engine 3** to predict who will win before the battle starts.
-6. Battle on Pokémon Showdown.
-7. Return to Engine 3 to log the actual result.
-8. View the **Analytics Dashboard** to see the system's accuracy and confusion matrix over time.
+1. **Open the Dashboard:** Navigate to the live deployment URL.
+2. **Generate Gym Team:** Go to the "TEAM GEN" (Engine 1) tab. Select a region (Kanto, Unova, Paldea) and a Type Specialization. Click "GENERATE".
+3. **Generate Challenger Team:** Go to the "COUNTER-PICK" (Engine 2) tab. Paste the Gym Leader's team. Click "GENERATE COUNTER-PICKS".
+4. **Predict Match:** Go to the "BATTLE PREDICTOR" (Engine 3) tab. Ensure both teams are loaded and click "PREDICT MATCH".
+5. **Log Result:** Battle on Pokémon Showdown using the generated teams. Return to the dashboard and log the final result (Winner, Turns, Link).
+6. **View Analytics:** Navigate to the "ANALYTICS" tab to view the live Confusion Matrix and system accuracy.
 
 ---
 
 ## 10. Pokémon Showdown Output
-The system strictly adheres to the Pokémon Showdown import/export formatting. All generated teams output Pokémon names, Held Items, Abilities, EVs, Natures, IVs, and 4 competitive Moves in plain text.
+
+The system outputs teams strictly formatted for direct importing into Pokémon Showdown.
+
+| Pokémon | Native Region | Role | Type | Key Stats | Reason Selected |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Exeggutor | Kanto | Sweeper | Grass/Psychic | 520 BST | High Offensive Score |
+| Lapras | Kanto | Tank | Water/Ice | 535 BST | High Defensive Score |
+
+*(Copy-pasteable Showdown team export available directly from the Web UI)*
 
 ---
 
 ## 11. Limitations
-*   Due to the vast number of possible moves, the system prioritizes mathematically optimal STAB and coverage moves, which might occasionally overlook hyper-specific niche strategy moves (like Baton Pass chains).
+*   The system prioritizes mathematically optimal STAB and coverage moves, which might occasionally overlook hyper-specific niche strategy moves (like Baton Pass chains).
 *   API rate limiting from PokéAPI can cause slight delays if generating massive pools of un-cached data simultaneously.
 
 ---
 
 ## 12. Problems Encountered & Fixes
-*   **Issue:** The engine was occasionally assigning useless status moves (like "Tail Whip") to level 100 competitive Pokémon.
+*   **Issue:** The engine was occasionally assigning useless status moves (like "Tail Whip") to level 100 competitive Pokémon as fillers.
 *   **Fix:** Refactored the fallback move generation logic to strictly cross-reference the Pokémon's valid learnset against a curated dictionary of top-tier competitive moves, ensuring only tournament-viable moves are assigned.
 
 ---
 
 ## 13. Demo & Deployment Evidence
-The application is deployed via Vercel and is fully accessible online. Supabase handles the database hosting. The interface features a pixel-art aesthetic and fully responsive design.
+*   **Demo to Sir CG:** Scheduled before June 2.
+*   **Pokémon Day use / preparation:** The system is fully deployed on Vercel with a connected Supabase PostgreSQL backend. It handles live requests, restricts inputs to Section 3ISB regions (Kanto, Unova, Paldea), and maintains a strict audit trail of all generated data.
 
 ---
 
 ## 14. Final Reflection
-Building the Pokémon Battle Engine System bridged the gap between raw data manipulation and tangible business-intelligence applications. By turning raw JSON from PokéAPI into actionable, data-driven decisions for Pokémon drafting, the project successfully demonstrated how analytics, databases, and algorithms can work together in real-time.
+Building the Pokémon Battle Engine System successfully bridged the gap between raw data manipulation and tangible business-intelligence applications. By turning raw JSON from PokéAPI into actionable, data-driven decisions for Pokémon drafting (while strictly adhering to native region and battle restrictions), the project demonstrated how heuristics, databases, and algorithms can work together in real-time to solve complex strategic problems.
 
 ---
 
 ### Appendix — Glossary
-*   **STAB:** Same Type Attack Bonus.
-*   **BST:** Base Stat Total.
-*   **EVs / IVs:** Effort Values and Individual Values (stats).
-*   **PokéAPI:** The RESTful API used for fetching Pokémon data.
-*   **Supabase:** The backend-as-a-service provider used for Postgres databases.
+
+| Term | Definition |
+| :--- | :--- |
+| Native region | Original region / generation a Pokémon belongs to |
+| Ground truth | The actual recorded battle result |
+| Confusion matrix | Table of correct vs. incorrect predictions per class |
+| Confidence score | Model's estimated probability for its prediction |
+| Audit trail | Timestamped record of who changed what |
