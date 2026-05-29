@@ -253,62 +253,129 @@ export async function generateGymTeam({ gymType, strategy, teamSize, model, regi
     const s = { hp: 0, attack: 0, defense: 0, 'special-attack': 0, 'special-defense': 0, speed: 0 };
     p.stats.forEach(st => { s[st.stat.name] = st.base_stat; });
     
+    // ---- Strategy Multipliers ----
     let offWeight = 1.0, defWeight = 1.0, speWeight = 1.0;
-    if (['Offensive', 'HyperOffense'].includes(strategy)) { offWeight = 1.4; speWeight = 1.3; }
-    else if (['Defensive', 'Stall'].includes(strategy)) { defWeight = 1.4; speWeight = 0.8; }
+    if (['Offensive', 'HyperOffense'].includes(strategy)) { offWeight = 1.4; speWeight = 1.3; defWeight = 0.7; }
+    else if (['Defensive', 'Stall'].includes(strategy)) { defWeight = 1.4; speWeight = 0.8; offWeight = 0.7; }
     else if (strategy === 'Trick Room') { speWeight = -1.0; offWeight = 1.2; defWeight = 1.2; }
+    else if (strategy === 'Rain Team') { offWeight = 1.1; speWeight = 1.1; }
+    else if (strategy === 'Sun Team') { offWeight = 1.3; speWeight = 1.0; }
+    else if (strategy === 'Sand Team') { defWeight = 1.3; speWeight = 0.9; }
+    else if (strategy === 'Hail Team') { defWeight = 1.2; offWeight = 1.1; }
+    
+    // ---- Physical vs Special Split Intelligence ----
+    // Use the HIGHER of Atk/SpA so mixed attackers aren't penalized,
+    // but also give a small bonus for having both (versatility)
+    const bestAtk = Math.max(s.attack, s['special-attack']);
+    const worstAtk = Math.min(s.attack, s['special-attack']);
+    const mixedBonus = (worstAtk > 80) ? 20 : 0; // Versatile mixed attacker
     
     const weightedScore = 
-      (s.attack + s['special-attack']) * offWeight +
+      (bestAtk * 1.5 + worstAtk * 0.5 + mixedBonus) * offWeight +
       (s.defense + s['special-defense'] + s.hp) * defWeight +
       (s.speed * speWeight);
 
+    // ---- Defensive Typing Quality ----
     const getResistScore = (types) => {
       const typeNames = types.map(t => t.type.name);
-      let weakCount = 0, resistCount = 0;
+      let weakCount = 0, resistCount = 0, immuneCount = 0;
       Object.keys(TYPE_CHART).forEach(atkType => {
         const eff = getTotalEffectiveness([atkType], typeNames);
-        if (eff > 1) weakCount++;
-        if (eff < 1) resistCount++;
+        if (eff === 0) immuneCount++;
+        else if (eff > 1) weakCount++;
+        else if (eff < 1) resistCount++;
       });
-      return resistCount - weakCount;
+      return (resistCount * 1) + (immuneCount * 3) - (weakCount * 2);
     };
     
-    const resistScore = getResistScore(p.types);
-    const finalScore = weightedScore + (resistScore * 15);
+    // ---- Offensive Coverage Quality ----
+    // How many types can this Pokémon hit super-effectively with STAB?
+    const myTypes = p.types.map(t => t.type.name);
+    let coverageCount = 0;
+    Object.keys(TYPE_CHART).forEach(defType => {
+      const eff = getTotalEffectiveness(myTypes, [defType]);
+      if (eff >= 2) coverageCount++;
+    });
+    const coverageBonus = coverageCount * 8; // Reward broad offensive coverage
     
-    return { ...p, finalScore, roleAssigned: assignRole(p) };
+    const resistScore = getResistScore(p.types);
+    const finalScore = weightedScore + (resistScore * 12) + coverageBonus;
+    
+    return { ...p, finalScore, roleAssigned: assignRole(p), myTypes };
   });
 
-  // Model-specific selection
+  // Model-specific selection with TEAM SYNERGY intelligence
   let sorted = scored.sort((a, b) => b.finalScore - a.finalScore);
   const selected = [];
   const desiredRoles = { 'Sweeper': Math.max(1, Math.floor(teamSize * 0.3)), 'Tank': Math.max(1, Math.floor(teamSize * 0.3)), 'Pivot': 1, 'Support': 1 };
   const currentRoles = { 'Sweeper': 0, 'Tank': 0, 'Pivot': 0, 'Support': 0 };
+  
+  // Track team weaknesses to prevent stacking shared vulnerabilities
+  const teamWeaknesses = {}; // type -> count of team members weak to it
+  const teamTypes = new Set(); // prevent too many of the exact same secondary type
+
+  const getWeaknesses = (pokemon) => {
+    const types = pokemon.myTypes || pokemon.types?.map(t => t.type?.name || t) || [];
+    const weakTo = [];
+    Object.keys(TYPE_CHART).forEach(atkType => {
+      const eff = getTotalEffectiveness([atkType], types);
+      if (eff >= 2) weakTo.push(atkType);
+    });
+    return weakTo;
+  };
+
+  const getSynergyPenalty = (pokemon) => {
+    const weakTo = getWeaknesses(pokemon);
+    let penalty = 0;
+    weakTo.forEach(wType => {
+      const existing = teamWeaknesses[wType] || 0;
+      if (existing >= 2) penalty += 150;  // 3+ members sharing a weakness is catastrophic
+      else if (existing >= 1) penalty += 50; // 2 members sharing is risky
+    });
+    // Penalize exact duplicate typing (e.g. two pure Fire types)
+    const typeKey = (pokemon.myTypes || []).sort().join('/');
+    if (teamTypes.has(typeKey)) penalty += 100;
+    return penalty;
+  };
 
   for (const p of sorted) {
     if (selected.length >= teamSize) break;
     try {
       const s = await fetchWithRetry(p.species.url).then(r => r.json());
       if (s.is_legendary || s.is_mythical) continue;
-      // Filter out commonly banned paradox pokemon
       if (s.name.startsWith('iron-') || ['great-tusk', 'scream-tail', 'brute-bonnet', 'flutter-mane', 'slither-wing', 'sandy-shocks', 'roaring-moon', 'walking-wake', 'gouging-fire', 'raging-bolt'].includes(s.name)) continue;
       
+      // Apply synergy penalty — skip if adding this mon creates too many shared weaknesses
+      const synergyPenalty = getSynergyPenalty(p);
+      const adjustedScore = p.finalScore - synergyPenalty;
+      
       if (model === 'kmeans') {
-        // K-Means explicitly enforces role clustering balance
         if (currentRoles[p.roleAssigned] < desiredRoles[p.roleAssigned] || selected.length >= teamSize - 1) {
-          selected.push(p);
-          currentRoles[p.roleAssigned]++;
+          if (synergyPenalty < 200) { // Don't allow catastrophic overlap even in K-Means
+            selected.push({ ...p, adjustedScore });
+            currentRoles[p.roleAssigned]++;
+          }
         }
       } else {
-        selected.push(p);
+        // For other models, allow some overlap but heavily penalize it
+        if (synergyPenalty < 300 || selected.length >= teamSize - 2) {
+          selected.push({ ...p, adjustedScore });
+        }
+      }
+      
+      // Register this pokemon's weaknesses and types into the team tracker
+      if (selected[selected.length - 1]?.id === p.id) {
+        const weakTo = getWeaknesses(p);
+        weakTo.forEach(wType => { teamWeaknesses[wType] = (teamWeaknesses[wType] || 0) + 1; });
+        const typeKey = (p.myTypes || []).sort().join('/');
+        teamTypes.add(typeKey);
       }
     } catch (e) {
-      selected.push(p); // fallback if fetch fails
+      selected.push(p);
     }
   }
 
-  // Fill remaining if K-Means was too strict and missed slots
+  // Fill remaining if selection was too strict
   if (selected.length < teamSize) {
      for (const p of sorted) {
        if (selected.length >= teamSize) break;
@@ -449,10 +516,18 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
       defensiveScore += matchDefense;
     });
 
+    // ---- Attack Stat Relevance ----
+    // A Pokemon that hits super-effectively but has terrible attack power shouldn't score high.
+    const myAtk = Math.max(
+      p.stats.find(s => s.stat.name === 'attack')?.base_stat || 50,
+      p.stats.find(s => s.stat.name === 'special-attack')?.base_stat || 50
+    );
+    // Scale offensive score by actual attack stat (100 is baseline, so 130 Atk = 1.3x multiplier)
+    const atkScaler = myAtk / 100;
+    
     // Heavily weight Base Stats to prefer fully evolved Pokemon
     const bstBonus = (p.bst / 720) * 80; 
-    const rawScore = (offensiveScore * 1.5) + (defensiveScore * 1.0) + bstBonus;
-    
+    const rawScore = (offensiveScore * 1.5 * atkScaler) + (defensiveScore * 1.0) + bstBonus;    
     const matchups = opponentTeam.map(opp => ({
       name: opp.name,
       multiplier: getTotalEffectiveness(p.types, opp.types || []),
@@ -461,16 +536,26 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
     return { ...p, rawScore, matchups };
   });
 
-  // Pick top 6 absolute best scores (excluding legendaries) based on raw score
+  // Pick top 6 with TYPE DIVERSITY enforcement
+  // Don't allow the counter team to stack 3+ of the same primary type
   const sortedRaw = scoredRaw.sort((a, b) => b.rawScore - a.rawScore);
   const top6 = [];
+  const counterTypeCounts = {}; // track how many counters share a primary type
+  
   for (const p of sortedRaw) {
     if (top6.length >= 6) break;
     try {
       const s = await fetchWithRetry(p.species.url).then(r => r.json());
       if (s.is_legendary || s.is_mythical) continue;
       if (s.name.startsWith('iron-') || ['great-tusk', 'scream-tail', 'brute-bonnet', 'flutter-mane', 'slither-wing', 'sandy-shocks', 'roaring-moon', 'walking-wake', 'gouging-fire', 'raging-bolt'].includes(s.name)) continue;
+      
+      // Type diversity check: no more than 2 counters sharing the same primary type
+      const primaryType = p.types[0];
+      const typeCount = counterTypeCounts[primaryType] || 0;
+      if (typeCount >= 2) continue; // Skip — we already have 2 of this type
+      
       top6.push(p);
+      counterTypeCounts[primaryType] = typeCount + 1;
     } catch (e) {
       top6.push(p);
     }
