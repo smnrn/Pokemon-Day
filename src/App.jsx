@@ -47,88 +47,41 @@ function PokeballTransition({ visible }) {
   );
 }
 
-function App() {
-  const [activeSection, setActiveSection] = useState('hero');
-  const [transitioning, setTransitioning] = useState(false);
-  const sectionRefs = useRef({});
-
-  // Scroll spy
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const id = entry.target.id;
-            if (SECTIONS.includes(id)) setActiveSection(id);
-          }
-        });
-      },
-      { threshold: 0.3, rootMargin: '-60px 0px 0px 0px' }
-    );
-    SECTIONS.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, []);
-
-  const navigate = useCallback((sectionId) => {
-    setTransitioning(true);
-    setTimeout(() => {
-      const el = document.getElementById(sectionId);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveSection(sectionId);
-      setTimeout(() => setTransitioning(false), 400);
-    }, 200);
-  }, []);
-
+function Maintenance() {
   return (
-    <ToastProvider>
-      <div className="pixel-grid" style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #0a0a1a 0%, #0d0d22 100%)', overflowX: 'hidden' }}>
-        <PokeballTransition visible={transitioning}/>
-        <Navbar activeSection={activeSection} onNavigate={navigate}/>
-
-        <main style={{ paddingTop: '60px' }}>
-          <Hero onNavigate={navigate}/>
-          
-          {/* Section dividers */}
-          <div className="section-divider"/>
-          <Engine1/>
-          
-          <div className="section-divider"/>
-          <Engine2/>
-          
-          <div className="section-divider"/>
-          <Engine3/>
-          
-          <div className="section-divider"/>
-          <PokemonProfile/>
-          
-          <div className="section-divider"/>
-          <BattleLog/>
-          
-          <div className="section-divider"/>
-          <Analytics/>
-          
-          <div className="section-divider"/>
-          <AuditLog/>
-        </main>
-
-        {/* Footer */}
-        <footer style={{
-          background: 'rgba(10,10,26,0.95)', borderTop: '1px solid rgba(67,97,238,0.2)',
-          padding: '24px', textAlign: 'center',
-        }}>
-          <div style={{ fontFamily: 'Press Start 2P', fontSize: '7px', color: '#8888bb', marginBottom: '6px' }}>
-            3-ISB POKEMON BATTLE ENGINE SYSTEM
-          </div>
-          <div style={{ fontFamily: 'Exo 2', fontSize: '12px', color: '#4361ee80' }}>
-            Developed by Simon Ron Joshua Roaring
-          </div>
-        </footer>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(180deg, #0a0a1a 0%, #0d0d22 100%)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px',
+      color: '#e8e8ff',
+      textAlign: 'center'
+    }}>
+      <div style={{
+        background: 'rgba(230, 57, 70, 0.1)',
+        border: '1px solid rgba(230, 57, 70, 0.3)',
+        borderRadius: '12px',
+        padding: '40px',
+        maxWidth: '500px'
+      }}>
+        <div style={{ fontSize: '48px', marginBottom: '24px' }}>🚧</div>
+        <h1 style={{ fontFamily: 'Press Start 2P', fontSize: '16px', color: '#e63946', marginBottom: '24px', lineHeight: '1.5' }}>
+          SYSTEM OFFLINE
+        </h1>
+        <p style={{ fontFamily: 'Exo 2', fontSize: '14px', color: '#8888bb', lineHeight: '1.6' }}>
+          The Pokémon Battle Engine System is currently locked and undergoing maintenance.
+          Access has been temporarily disabled by the administrator.
+        </p>
       </div>
-    </ToastProvider>
+    </div>
   );
+}
+
+function App() {
+  return <Maintenance />;
 }
 
 export default App;
