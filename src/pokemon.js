@@ -106,6 +106,17 @@ export const BANNED_POKEMON = new Set([
   'great-tusk','scream-tail','brute-bonnet','flutter-mane','slither-wing','sandy-shocks','iron-treads','iron-bundle','iron-hands','iron-jugulis','iron-moth','iron-thorns','roaring-moon','iron-valiant',
 ]);
 
+// Helper: checks if a name matches the ban list (handles variant forms like 'zygarde-50', 'deoxys-normal')
+export function isBannedPokemon(name) {
+  if (BANNED_POKEMON.has(name)) return true;
+  // Check if any banned name is a prefix of this name followed by a hyphen
+  // e.g. 'zygarde-50' starts with 'zygarde-', 'giratina-origin' starts with 'giratina-'
+  for (const banned of BANNED_POKEMON) {
+    if (name.startsWith(banned + '-') || name === banned) return true;
+  }
+  return false;
+}
+
 // ---- COMPETITIVE DATA ----
 export const COMPETITIVE_MOVES = {
   normal: ['Return', 'Double-Edge', 'Body Slam', 'Extreme Speed', 'Fake Out'],
@@ -373,8 +384,8 @@ export async function generateGymTeam({ gymType, strategy, teamSize, model, regi
     try {
       const s = await fetchWithRetry(p.species.url).then(r => r.json());
       if (s.is_legendary || s.is_mythical) continue;
-      // Hardcoded ban list catches Ultra Beasts, Paradox, and anything the API misses
-      if (BANNED_POKEMON.has(p.name)) continue;
+      // Hardcoded ban list catches Ultra Beasts, Paradox, variants, and anything the API misses
+      if (isBannedPokemon(p.name)) continue;
       
       // Apply synergy penalty — skip if adding this mon creates too many shared weaknesses
       const synergyPenalty = getSynergyPenalty(p);
@@ -402,7 +413,8 @@ export async function generateGymTeam({ gymType, strategy, teamSize, model, regi
         teamTypes.add(typeKey);
       }
     } catch (e) {
-      selected.push(p);
+      // Species fetch failed — skip this pokemon entirely to be safe (could be legendary)
+      continue;
     }
   }
 
@@ -578,7 +590,7 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
     try {
       const s = await fetchWithRetry(p.species.url).then(r => r.json());
       if (s.is_legendary || s.is_mythical) continue;
-      if (BANNED_POKEMON.has(p.name)) continue;
+      if (isBannedPokemon(p.name)) continue;
       
       // Type diversity check: no more than 2 counters sharing the same primary type
       const primaryType = p.types[0];
@@ -588,7 +600,8 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
       top6.push(p);
       counterTypeCounts[primaryType] = typeCount + 1;
     } catch (e) {
-      top6.push(p);
+      // Species fetch failed — skip to be safe
+      continue;
     }
   }
 
