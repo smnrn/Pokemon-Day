@@ -410,31 +410,48 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
     let defensiveScore = 0;
 
     const mySpeed = p.stats.find(s => s.stat.name === 'speed')?.base_stat || 80;
-    // Speed Tier Bonus: Outspeeding the opponent's average speed is crucial for a counter
-    const speedBonus = mySpeed > opponentAverageSpeed ? 35 : 0;
 
     opponentTeam.forEach(opp => {
+      const oppSpeed = (opp.stats || []).find(s => s.stat.name === 'speed')?.base_stat || 80;
+
       // Offensive: Can I hit them super effectively with my STAB?
       const myBestAttack = Math.max(...p.types.map(t => getTotalEffectiveness([t], opp.types || [])));
-      if (myBestAttack >= 4) offensiveScore += 80;
-      else if (myBestAttack >= 2) offensiveScore += 35;
-      else if (myBestAttack === 1) offensiveScore += 5;
-      else if (myBestAttack > 0) offensiveScore -= 15;
-      else offensiveScore -= 30;
+      let matchOffense = 0;
+      if (myBestAttack >= 4) matchOffense += 80;
+      else if (myBestAttack >= 2) matchOffense += 35;
+      else if (myBestAttack === 1) matchOffense += 5;
+      else if (myBestAttack > 0) matchOffense -= 15;
+      else matchOffense -= 30;
 
       // Defensive: Can I resist their STAB?
       const theirBestAttack = Math.max(...(opp.types || []).map(t => getTotalEffectiveness([t], p.types)));
-      if (theirBestAttack === 0) defensiveScore += 40;
-      else if (theirBestAttack <= 0.25) defensiveScore += 30;
-      else if (theirBestAttack <= 0.5) defensiveScore += 15;
-      else if (theirBestAttack === 1) defensiveScore += 0;
-      else if (theirBestAttack >= 2) defensiveScore -= 30;
-      else if (theirBestAttack >= 4) defensiveScore -= 60;
+      let matchDefense = 0;
+      if (theirBestAttack === 0) matchDefense += 40;
+      else if (theirBestAttack <= 0.25) matchDefense += 30;
+      else if (theirBestAttack <= 0.5) matchDefense += 15;
+      else if (theirBestAttack === 1) matchDefense += 0;
+      else if (theirBestAttack >= 2) matchDefense -= 30;
+      else if (theirBestAttack >= 4) matchDefense -= 60;
+
+      // SPEED CONTEXT (Crucial Intelligence)
+      // If they hit me super effectively AND they are faster, my defense is meaningless (I'm dead).
+      if (theirBestAttack >= 2 && oppSpeed > mySpeed) {
+         matchDefense -= 50; // Massive penalty for being slow and weak!
+         matchOffense *= 0.5; // My offense is useless if I die before attacking.
+      }
+      
+      // If I hit them super effectively AND I am faster, I am an excellent counter (Sweep potential).
+      if (myBestAttack >= 2 && mySpeed > oppSpeed) {
+         matchOffense += 40; // Massive bonus for outspeeding and threatening a KO!
+      }
+
+      offensiveScore += matchOffense;
+      defensiveScore += matchDefense;
     });
 
     // Heavily weight Base Stats to prefer fully evolved Pokemon
     const bstBonus = (p.bst / 720) * 80; 
-    const rawScore = (offensiveScore * 1.5) + (defensiveScore * 1.0) + bstBonus + speedBonus;
+    const rawScore = (offensiveScore * 1.5) + (defensiveScore * 1.0) + bstBonus;
     
     const matchups = opponentTeam.map(opp => ({
       name: opp.name,
