@@ -248,16 +248,24 @@ export async function generateGymTeam({ gymType, strategy, teamSize, model, regi
     valid = fetched.filter(p => p && !usedIds.has(p.id));
   }
   
-  // Advanced Stat Evaluation - Sort by BST + Resistance Score for "hard to counter"
-  let sorted = valid.sort((a, b) => {
-    const aTotal = a.stats.reduce((s, st) => s + st.base_stat, 0);
-    const bTotal = b.stats.reduce((s, st) => s + st.base_stat, 0);
+  // Advanced Stat Evaluation - Strategy Weighting & Model Logic
+  let scored = valid.map(p => {
+    const s = { hp: 0, attack: 0, defense: 0, 'special-attack': 0, 'special-defense': 0, speed: 0 };
+    p.stats.forEach(st => { s[st.stat.name] = st.base_stat; });
     
-    // Calculate resistance score (fewer weaknesses = higher score)
+    let offWeight = 1.0, defWeight = 1.0, speWeight = 1.0;
+    if (['Offensive', 'HyperOffense'].includes(strategy)) { offWeight = 1.4; speWeight = 1.3; }
+    else if (['Defensive', 'Stall'].includes(strategy)) { defWeight = 1.4; speWeight = 0.8; }
+    else if (strategy === 'Trick Room') { speWeight = -1.0; offWeight = 1.2; defWeight = 1.2; }
+    
+    const weightedScore = 
+      (s.attack + s['special-attack']) * offWeight +
+      (s.defense + s['special-defense'] + s.hp) * defWeight +
+      (s.speed * speWeight);
+
     const getResistScore = (types) => {
       const typeNames = types.map(t => t.type.name);
-      let weakCount = 0;
-      let resistCount = 0;
+      let weakCount = 0, resistCount = 0;
       Object.keys(TYPE_CHART).forEach(atkType => {
         const eff = getTotalEffectiveness([atkType], typeNames);
         if (eff > 1) weakCount++;
@@ -266,29 +274,49 @@ export async function generateGymTeam({ gymType, strategy, teamSize, model, regi
       return resistCount - weakCount;
     };
     
-    const aResist = getResistScore(a.types);
-    const bResist = getResistScore(b.types);
+    const resistScore = getResistScore(p.types);
+    const finalScore = weightedScore + (resistScore * 15);
     
-    // Combine BST and Resistance for a "very strong and hard to counter" score
-    const aScore = aTotal + (aResist * 10);
-    const bScore = bTotal + (bResist * 10);
-    
-    return bScore - aScore; // Highest score first
+    return { ...p, finalScore, roleAssigned: assignRole(p) };
   });
 
+  // Model-specific selection
+  let sorted = scored.sort((a, b) => b.finalScore - a.finalScore);
   const selected = [];
+  const desiredRoles = { 'Sweeper': Math.max(1, Math.floor(teamSize * 0.3)), 'Tank': Math.max(1, Math.floor(teamSize * 0.3)), 'Pivot': 1, 'Support': 1 };
+  const currentRoles = { 'Sweeper': 0, 'Tank': 0, 'Pivot': 0, 'Support': 0 };
+
   for (const p of sorted) {
     if (selected.length >= teamSize) break;
     try {
       const s = await fetchWithRetry(p.species.url).then(r => r.json());
       if (s.is_legendary || s.is_mythical) continue;
-      // also filter out paradox pokemon commonly banned
+      // Filter out commonly banned paradox pokemon
       if (s.name.startsWith('iron-') || ['great-tusk', 'scream-tail', 'brute-bonnet', 'flutter-mane', 'slither-wing', 'sandy-shocks', 'roaring-moon', 'walking-wake', 'gouging-fire', 'raging-bolt'].includes(s.name)) continue;
-      selected.push(p);
+      
+      if (model === 'kmeans') {
+        // K-Means explicitly enforces role clustering balance
+        if (currentRoles[p.roleAssigned] < desiredRoles[p.roleAssigned] || selected.length >= teamSize - 1) {
+          selected.push(p);
+          currentRoles[p.roleAssigned]++;
+        }
+      } else {
+        selected.push(p);
+      }
     } catch (e) {
       selected.push(p); // fallback if fetch fails
     }
   }
+
+  // Fill remaining if K-Means was too strict and missed slots
+  if (selected.length < teamSize) {
+     for (const p of sorted) {
+       if (selected.length >= teamSize) break;
+       if (!selected.find(sel => sel.id === p.id)) selected.push(p);
+     }
+  }
+
+
 
   for (const p of selected) {
     usedIds.add(p.id);
@@ -366,9 +394,19 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
   }));
 
   // Deep Counter Analysis Score (Calculate Raw)
+  const opponentAverageSpeed = opponentTeam.reduce((sum, opp) => {
+    const oppStats = opp.stats || [];
+    const speedStat = oppStats.find(s => s.stat.name === 'speed');
+    return sum + (speedStat ? speedStat.base_stat : 80);
+  }, 0) / (opponentTeam.length || 1);
+
   const scoredRaw = valid.map(p => {
     let offensiveScore = 0;
     let defensiveScore = 0;
+
+    const mySpeed = p.stats.find(s => s.stat.name === 'speed')?.base_stat || 80;
+    // Speed Tier Bonus: Outspeeding the opponent's average speed is crucial for a counter
+    const speedBonus = mySpeed > opponentAverageSpeed ? 35 : 0;
 
     opponentTeam.forEach(opp => {
       // Offensive: Can I hit them super effectively with my STAB?
@@ -383,7 +421,7 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
 
     // Heavily weight Base Stats to prefer fully evolved Pokemon
     const bstBonus = (p.bst / 720) * 80; 
-    const rawScore = (offensiveScore * 0.8) + (defensiveScore * 1.2) + bstBonus;
+    const rawScore = (offensiveScore * 0.8) + (defensiveScore * 1.2) + bstBonus + speedBonus;
     
     const matchups = opponentTeam.map(opp => ({
       name: opp.name,
@@ -560,21 +598,30 @@ export function parseTeamInput(text) {
 
 // ---- BATTLE PREDICTOR ----
 export function predictBattle(teamA, teamB) {
-  function teamScore(team) {
-    return team.reduce((sum, p) => {
-      let total = (p.stats || []).reduce((s, st) => s + st.base_stat, 0);
+  function teamMetrics(team) {
+    let bstSum = 0;
+    let speedSum = 0;
+    team.forEach(p => {
+      let bst = (p.stats || []).reduce((s, st) => s + st.base_stat, 0);
+      let speed = (p.stats || []).find(s => s.stat.name === 'speed')?.base_stat || 80;
       
       // Include parsed advanced stats
       if (p.parsed) {
-        if (p.parsed.bstBonus) total += p.parsed.bstBonus;
+        if (p.parsed.bstBonus) bst += p.parsed.bstBonus;
         // Move synergy bonus
         if (p.parsed.moves && p.parsed.moves.length > 0) {
-          total += p.parsed.moves.length * 20; 
+          bst += p.parsed.moves.length * 20; 
         }
       }
-      return sum + total;
-    }, 0);
+      bstSum += bst;
+      speedSum += speed;
+    });
+    return { bst: bstSum, speedAvg: speedSum / (team.length || 1) };
   }
+  
+  const metricsA = teamMetrics(teamA);
+  const metricsB = teamMetrics(teamB);
+
   let teamAAdvantage = 0;
   let teamBAdvantage = 0;
   
@@ -595,10 +642,19 @@ export function predictBattle(teamA, teamB) {
     });
   });
 
-  const scoreA = teamScore(teamA) + teamAAdvantage;
-  const scoreB = teamScore(teamB) + teamBAdvantage;
-  const total = scoreA + scoreB || 1;
-  const confA = Math.round((scoreA / total) * 100);
+  // Initiative (Speed) Bonus
+  if (metricsA.speedAvg > metricsB.speedAvg + 10) teamAAdvantage += 100;
+  else if (metricsB.speedAvg > metricsA.speedAvg + 10) teamBAdvantage += 100;
+
+  const scoreA = metricsA.bst + teamAAdvantage;
+  const scoreB = metricsB.bst + teamBAdvantage;
+  
+  // Sigmoid Probability Calculation for more realistic/decisive predictions
+  const scoreDiff = scoreA - scoreB;
+  const steepness = 0.006; // Tunes how decisive a small advantage is
+  const winProbA = 1 / (1 + Math.exp(-steepness * scoreDiff));
+  
+  const confA = Math.round(winProbA * 100);
   const confB = 100 - confA;
   const winner = confA >= confB ? 'A' : 'B';
   return { confA, confB, winner, scoreA, scoreB };

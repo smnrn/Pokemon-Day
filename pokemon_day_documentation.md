@@ -123,15 +123,15 @@ Teams must use only Pokémon native to the selected region and matching the type
 | Random Forest | Ensemble of decision trees | Rank Pokémon by predicted usefulness |
 | **Rule-Based Scoring** | Explicit weighted rules | Filter/score by region, type, stats |
 
-**Model deep-dive — Rule-Based Scoring**
-*   **What it does:** Uses explicit mathematical thresholds to classify Pokémon and assign roles based on their aggregate stat totals and type matchups.
-*   **Why it fits the Team Engine:** Provides deterministic, highly accurate role classification (Sweeper, Tank) ensuring a balanced 6-Pokémon team every time without relying on heavy iterative training data.
-*   **Input features:** HP, Attack, Defense, Sp. Atk, Sp. Def, Speed.
-*   **How it produces output:** Calculates an Offensive Score and Defensive Score. If Offense is 30% higher than Defense and Speed > 80, it outputs the "Sweeper" role and assigns appropriate EVs and items.
-*   **Evaluation metric(s) & result:** Team Balance Score (custom heuristic ensuring all 4 combat roles are present).
+**Model deep-dive — Rule-Based Scoring & Strategy Weighting**
+*   **What it does:** Uses explicit mathematical multipliers based on the selected "Strategy" to weight Base Stats, and enforces role clustering algorithms (like K-Means) to guarantee team balance.
+*   **Why it fits the Team Engine:** Provides deterministic, highly accurate role classification. By applying a 1.4x multiplier to Offensive/Defensive stats based on Strategy, the engine generates dynamically tailored stat profiles.
+*   **Input features:** Selected Strategy, HP, Attack, Defense, Sp. Atk, Sp. Def, Speed.
+*   **How it produces output:** Calculates a final score combining Strategy-weighted Base Stats and a Resistance Score. If the K-Means model is selected, the engine strictly forces a distributed clustering of roles (e.g., 2 Sweepers, 2 Tanks, 1 Pivot, 1 Support) rather than purely picking the top raw scores.
+*   **Evaluation metric(s) & result:** Silhouette Score (K-Means) or Strategy Fit Accuracy.
 
 ### 5.6 Engine logic
-Step-by-step: load PokéAPI data → filter region (Gen 1, Gen 5, Gen 9) → filter type → apply battle restrictions (remove legendaries/megas) → run Rule-Based Scoring model to calculate Base Stat Totals and assign combat roles → output 6 optimized Pokémon.
+Step-by-step: load PokéAPI data → filter region → filter type → apply battle restrictions → calculate Strategy-weighted scores + Resistance → apply K-Means clustering requirements to force role balance → output 6 optimized Pokémon.
 
 ### 5.7 Samples & evidence
 *   **Sample generated Gym Leader team:** [See Web UI Dashboard / Database Logs]
@@ -181,15 +181,15 @@ Recommend only Pokémon native to the challenger's assigned region (Kanto, Unova
 | Random Forest | Ensemble of trees | Rank possible challengers |
 | **Rule-Based Scoring** | Explicit advantage rules | Type advantage, resistance, weakness, stats |
 
-**Model deep-dive — Rule-Based Scoring (Minimax Heuristics)**
-*   **What it does:** Iterates through every valid Pokémon and assigns them a raw score based on how many super-effective hits and resistances they have against the target team.
-*   **Why it fits the Challenger Engine:** Type advantage is the most critical factor in Pokémon battles. A strict rule-based heuristic perfectly models the Rock-Paper-Scissors mechanics of the game.
-*   **Input features:** Opponent Team Types, Challenger Pool Base Stats, Type Matchup Chart.
-*   **How it produces output:** Calculates an Offensive advantage score (STAB coverage) and Defensive advantage score (Resistances), adds a BST modifier, finds the maximum possible score, and normalizes all Pokémon to a 10-99 scale. It outputs the top 6.
+**Model deep-dive — Rule-Based Scoring (Minimax + Speed Tier Analysis)**
+*   **What it does:** Iterates through every valid Pokémon, evaluating Offensive STAB coverage, Defensive Resistance, and critically, a Speed Tier Advantage against the target team.
+*   **Why it fits the Challenger Engine:** A counter is useless if it gets outsped and knocked out first. Speed Tier Analysis ensures recommended counters can reliably execute their attacks.
+*   **Input features:** Opponent Types & Average Speed, Challenger Base Stats, Type Matchup Chart.
+*   **How it produces output:** Calculates STAB multiplier coverage and Defensive resistances. It then compares the counter's Base Speed against the opponent's average Speed, awarding a heavy multiplier for outspeeding. The final normalized score (10-99) is used to select the top 6.
 *   **Evaluation metric(s) & result:** Counter Score Distribution (10-99 graded curve).
 
 ### 6.6 Engine logic
-Step-by-step: take Gym Leader team → load challenger pool (region + restriction filtered) → check type matchups (super-effective / resistances) → score counters → rank and scale out of 99 → output top 6 lineup with assigned counter moves.
+Step-by-step: take Gym Leader team → load challenger pool → calculate opponent average speed → check type matchups + Speed Tier bonuses → score counters → rank and scale out of 99 → output top 6 lineup with best counter-moves.
 
 ### 6.7 Samples & evidence
 *   **Sample challenger lineup:** [See Web UI Dashboard / Database Logs]
@@ -245,15 +245,15 @@ Predict the expected winner before each battle, and store the ground truth (actu
 | Logistic Regression | Linear win-probability model | Estimate win probability |
 | **Rule-Based Classifier** | Explicit if/then rules | Type coverage, weaknesses, balance |
 
-**Model deep-dive — Rule-Based Classifier**
-*   **What it does:** Compares the aggregate Base Stat Totals and cumulative Type Advantage Scores of both teams.
-*   **Why it fits the Prediction Engine:** Without thousands of prior battle logs to train a Logistic Regression model on day one, a heuristic classifier calculates immediate mathematical probabilities based on the known rules of the game.
-*   **Input features:** Team A Aggregate Stats, Team A Types, Team B Aggregate Stats, Team B Types.
-*   **How it produces output:** Calculates a score delta (Team A Score minus Team B Score). Converts this delta using a probability distribution curve into a Confidence Percentage, selecting the team with the higher score as the predicted winner.
-*   **Evaluation metric(s) & result:** Accuracy, Confusion Matrix, Precision, Recall, F1-Score, Brier Score. (Continuously tracked via the Analytics Dashboard).
+**Model deep-dive — Rule-Based Classifier with Sigmoid Probability**
+*   **What it does:** Compares aggregate Base Stat Totals, cumulative Type Advantage Scores, and overall Team Speed (Initiative Bonus), then runs the delta through a Sigmoid Function to determine win probability.
+*   **Why it fits the Prediction Engine:** A Sigmoid function converts raw stat advantages into realistic, non-linear win probabilities (making a 10% stat advantage translate to a decisively higher confidence rate).
+*   **Input features:** Team A/B Aggregate Stats, Team A/B Types, Team A/B Average Speeds.
+*   **How it produces output:** Calculates the Base Score delta (Team A Score minus Team B Score) including an Initiative Bonus for the faster team. It applies the Sigmoid Function `1 / (1 + e^(-steepness * scoreDiff))` to generate a Confidence Percentage.
+*   **Evaluation metric(s) & result:** Accuracy, Confusion Matrix, Precision, Recall, F1-Score.
 
 ### 7.6 Engine logic
-Step-by-step: read both lineups → extract matchup features (BST and type advantage deltas) → run Rule-Based Classifier model → output predicted winner + confidence → log to `predictions` table before battle → after battle, log actual winner to `ground_truth` → recompute metrics/confusion matrix.
+Step-by-step: extract matchup features (BST, Type advantages, Speed averages) → apply Initiative bonuses → calculate Sigmoid probability → output predicted winner + confidence → log to `predictions` before battle.
 
 ### 7.7 Samples & evidence
 *   **Sample prediction record:** [See Supabase `predictions` table]
