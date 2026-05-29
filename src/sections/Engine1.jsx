@@ -345,8 +345,21 @@ export default function Engine1() {
                                 <YAxis dataKey="predicted" type="number" name="Predicted Score" tick={{ fontSize: 10, fill: '#8888bb' }} stroke="#333344" domain={['auto', 'auto']} />
                                 <RechartsTooltip 
                                   cursor={{ strokeDasharray: '3 3' }} 
-                                  contentStyle={{ backgroundColor: 'rgba(10,15,36,0.95)', border: '1px solid #4361ee', borderRadius: '8px', fontFamily: 'Exo 2' }}
-                                  itemStyle={{ color: '#e8e8ff', fontWeight: 700 }}
+                                  content={({ active, payload }) => {
+                                    if (active && payload && payload.length) {
+                                      const data = payload[0].payload;
+                                      return (
+                                        <div style={{ backgroundColor: 'rgba(10,15,36,0.95)', border: '1px solid #4361ee', borderRadius: '8px', padding: '12px', fontFamily: 'Exo 2' }}>
+                                          <div style={{ color: '#fff', marginBottom: '8px', textTransform: 'uppercase', fontFamily: 'Press Start 2P', fontSize: '8px' }}>
+                                            {data.name}
+                                          </div>
+                                          <div style={{ color: '#8888bb', fontSize: '12px', marginBottom: '4px' }}>Actual Suitability: <span style={{color: '#fff', fontWeight: 700}}>{data.actual}</span></div>
+                                          <div style={{ color: '#8888bb', fontSize: '12px' }}>Predicted Score: <span style={{color: '#fff', fontWeight: 700}}>{data.predicted}</span></div>
+                                        </div>
+                                      );
+                                    }
+                                    return null;
+                                  }}
                                 />
                                 <Scatter name="Model Data" data={metrics.data} fill="#4361ee">
                                   {metrics.data.map((entry, index) => (

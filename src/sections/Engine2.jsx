@@ -452,8 +452,21 @@ export default function Engine2() {
                               <YAxis dataKey="predicted" type="number" name="Counter Score" tick={{ fontSize: 10, fill: '#8888bb' }} stroke="#333344" domain={['auto', 'auto']} />
                               <RechartsTooltip 
                                 cursor={{ strokeDasharray: '3 3' }} 
-                                contentStyle={{ backgroundColor: 'rgba(10,15,36,0.95)', border: '1px solid #e63946', borderRadius: '8px', fontFamily: 'Exo 2' }}
-                                itemStyle={{ color: '#e8e8ff', fontWeight: 700 }}
+                                content={({ active, payload }) => {
+                                  if (active && payload && payload.length) {
+                                    const data = payload[0].payload;
+                                    return (
+                                      <div style={{ backgroundColor: 'rgba(10,15,36,0.95)', border: '1px solid #e63946', borderRadius: '8px', padding: '12px', fontFamily: 'Exo 2' }}>
+                                        <div style={{ color: '#fff', marginBottom: '8px', textTransform: 'uppercase', fontFamily: 'Press Start 2P', fontSize: '8px' }}>
+                                          {data.name}
+                                        </div>
+                                        <div style={{ color: '#8888bb', fontSize: '12px', marginBottom: '4px' }}>Optimal Matchup: <span style={{color: '#fff', fontWeight: 700}}>{data.actual}</span></div>
+                                        <div style={{ color: '#8888bb', fontSize: '12px' }}>Counter Score: <span style={{color: '#fff', fontWeight: 700}}>{data.predicted}</span></div>
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                }}
                               />
                               <Scatter name="Model Data" data={metrics.data} fill="#e63946">
                                 {metrics.data.map((entry, index) => (
