@@ -362,7 +362,7 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
     }
     
     let sampleIds = idPool;
-    if (idPool.length > 150) {
+    if (idPool.length > 600) {
       // Seeded random based on opponent team so it's deterministic for the same opponent
       const teamString = opponentTeam.map(p => p.name).join('');
       let seed = 0;
@@ -376,7 +376,12 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
         return x - Math.floor(x);
       };
       
-      sampleIds = idPool.sort(() => seededRandom() - 0.5).slice(0, 100);
+      // Proper Fisher-Yates shuffle for better distribution
+      for (let i = sampleIds.length - 1; i > 0; i--) {
+        const j = Math.floor(seededRandom() * (i + 1));
+        [sampleIds[i], sampleIds[j]] = [sampleIds[j], sampleIds[i]];
+      }
+      sampleIds = sampleIds.slice(0, 350);
     }
 
     pool = await Promise.all(
