@@ -104,7 +104,7 @@ function calculateModelMetrics(team) {
 export default function Engine1() {
   const toast = useToast();
   const [gymType, setGymType] = useState('All Types');
-  const [region, setRegion] = useState('kanto');
+  const [region, setRegion] = useState('all');
   const [strategy, setStrategy] = useState('Balanced');
   const [teamSize, setTeamSize] = useState(6);
   const [model, setModel] = useState(() => localStorage.getItem('engine1_model') || 'kmeans');
