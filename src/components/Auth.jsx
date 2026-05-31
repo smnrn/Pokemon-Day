@@ -206,7 +206,7 @@ export default function Auth({ onLoginSuccess }) {
 
     const fn = isLogin ? supabase.auth.signInWithPassword : supabase.auth.signUp;
     const safeUsername = username.trim();
-    const emailFormat = safeUsername.includes('@') ? safeUsername : `${safeUsername}@pokemon-day.com`;
+    const emailFormat = safeUsername.includes('@') ? safeUsername : `${safeUsername.replace(/\s+/g, '_')}@example.com`;
     const opts = isLogin ? { email: emailFormat, password } : {
       email: emailFormat, password,
       options: { data: { section: section || null } },
@@ -227,8 +227,8 @@ export default function Auth({ onLoginSuccess }) {
       setErrorMessage(`⚠ ${msg.toUpperCase()}`);
       triggerError(); addToast(msg, 'error');
       setTimeout(() => setScreenRedFlash(false), 200);
-      setTimeout(() => setPokeballWobble(false), 600);
-      setTimeout(() => { setLoading(false); setBtnText(null); setProgress(0); setAuthFail(false); setFieldSurge(false); setErrorMessage(''); }, 2000);
+      setTimeout(() => { setLoading(false); setPokeballWobble(false); }, 600);
+      setTimeout(() => { setBtnText(null); setProgress(0); setAuthFail(false); setFieldSurge(false); }, 2000);
     } else {
       setProgress(90);
       setTimeout(() => { setCardFlash(true); setScreenScanlines(true); setStarsAccelerate(true); setOrbSurge(true); }, 100);
