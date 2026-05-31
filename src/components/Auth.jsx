@@ -215,6 +215,7 @@ export default function Auth({ onLoginSuccess }) {
     clearInterval(iv);
 
     if (error) {
+      setLoading(false);
       setProgress(100); setErrors({ username: true, password: true });
       setAuthFail(true); setBtnText('ACCESS DENIED ✗');
       setScreenRedFlash(true); setPokeballWobble(true);
@@ -227,7 +228,7 @@ export default function Auth({ onLoginSuccess }) {
       setErrorMessage(`⚠ ${msg.toUpperCase()}`);
       triggerError(); addToast(msg, 'error');
       setTimeout(() => setScreenRedFlash(false), 200);
-      setTimeout(() => { setLoading(false); setPokeballWobble(false); }, 600);
+      setTimeout(() => setPokeballWobble(false), 600);
       setTimeout(() => { setBtnText(null); setProgress(0); setAuthFail(false); setFieldSurge(false); }, 2000);
     } else {
       setProgress(90);
