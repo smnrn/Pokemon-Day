@@ -6,9 +6,8 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ---- Audit Log ----
-export async function addAuditLog(user, action, record, oldVal, newVal) {
+export async function addAuditLog(action, record, oldVal, newVal) {
   const { data, error } = await supabase.from('audit_logs').insert([{
-    user_id: user,
     action,
     affected_record: record,
     old_value: oldVal,
@@ -32,7 +31,7 @@ export async function saveEngineOutput(engine, data) {
   }]).select();
   if (error) console.error('saveEngineOutput error:', error);
   
-  await addAuditLog('system', 'CREATE', `engine_output:${engine}`, null, entry?.[0]);
+  await addAuditLog('CREATE', `engine_output:${engine}`, null, entry?.[0]);
   return entry?.[0];
 }
 
@@ -53,7 +52,7 @@ export async function savePrediction(matchId, battlerA, battlerB, predictedWinne
   }]).select();
   if (error) console.error('savePrediction error:', error);
   
-  await addAuditLog('system', 'CREATE', `prediction:${matchId}`, null, entry?.[0]);
+  await addAuditLog('CREATE', `prediction:${matchId}`, null, entry?.[0]);
   window.dispatchEvent(new Event('db_updated'));
 }
 
@@ -73,7 +72,7 @@ export async function saveBattleResult(matchId, battlerA, battlerB, predicted, a
   }]).select();
   if (error) console.error('saveBattleResult error:', error);
   
-  await addAuditLog('system', 'CREATE', `battle_result:${matchId}`, null, entry?.[0]);
+  await addAuditLog('CREATE', `battle_result:${matchId}`, null, entry?.[0]);
   return { hit };
 }
 

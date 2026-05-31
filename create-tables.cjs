@@ -9,26 +9,35 @@ async function testConnection() {
     await client.connect();
     console.log("Connection successful!");
     
-    // Create tables
+    // Drop existing tables to start fresh with strict user_id constraints
     await client.query(`
-      CREATE TABLE IF NOT EXISTS engine_outputs (
+      DROP TABLE IF EXISTS audit_logs, ground_truth, predictions, engine_outputs;
+    `);
+
+    // Create tables with user_id referencing auth.users
+    await client.query(`
+      CREATE TABLE engine_outputs (
         id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+        user_id uuid NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
         engine text NOT NULL,
         data jsonb NOT NULL,
         timestamp timestamp with time zone DEFAULT now()
       );
 
-      CREATE TABLE IF NOT EXISTS predictions (
+      CREATE TABLE predictions (
         id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+        user_id uuid NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
         match_id text NOT NULL,
         battler_a text NOT NULL,
         battler_b text NOT NULL,
         predicted_winner text NOT NULL,
+        replay_link text,
         timestamp timestamp with time zone DEFAULT now()
       );
 
-      CREATE TABLE IF NOT EXISTS ground_truth (
+      CREATE TABLE ground_truth (
         id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+        user_id uuid NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
         match_id text NOT NULL,
         battler_a text NOT NULL,
         battler_b text NOT NULL,
@@ -41,9 +50,9 @@ async function testConnection() {
         timestamp timestamp with time zone DEFAULT now()
       );
 
-      CREATE TABLE IF NOT EXISTS audit_logs (
+      CREATE TABLE audit_logs (
         audit_id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-        user_id text NOT NULL,
+        user_id uuid NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
         action text NOT NULL,
         affected_record text NOT NULL,
         old_value jsonb,
@@ -51,11 +60,17 @@ async function testConnection() {
         timestamp timestamp with time zone DEFAULT now()
       );
 
-      ALTER TABLE engine_outputs DISABLE ROW LEVEL SECURITY;
-      ALTER TABLE predictions ADD COLUMN IF NOT EXISTS replay_link text;
-      ALTER TABLE predictions DISABLE ROW LEVEL SECURITY;
-      ALTER TABLE ground_truth DISABLE ROW LEVEL SECURITY;
-      ALTER TABLE audit_logs DISABLE ROW LEVEL SECURITY;
+      -- Enable RLS
+      ALTER TABLE engine_outputs ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE predictions ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE ground_truth ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+
+      -- Create Policies
+      CREATE POLICY "Users can fully manage their own engine_outputs" ON engine_outputs FOR ALL USING (auth.uid() = user_id);
+      CREATE POLICY "Users can fully manage their own predictions" ON predictions FOR ALL USING (auth.uid() = user_id);
+      CREATE POLICY "Users can fully manage their own ground_truth" ON ground_truth FOR ALL USING (auth.uid() = user_id);
+      CREATE POLICY "Users can fully manage their own audit_logs" ON audit_logs FOR ALL USING (auth.uid() = user_id);
     `);
     
     console.log("Tables created successfully!");

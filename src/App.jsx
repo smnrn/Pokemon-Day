@@ -10,6 +10,8 @@ import PokemonProfile from './sections/PokemonProfile.jsx';
 import BattleLog from './sections/BattleLog.jsx';
 import Analytics from './sections/Analytics.jsx';
 import AuditLog from './sections/AuditLog.jsx';
+import Auth from './components/Auth.jsx';
+import { supabase } from './db.js';
 
 const SECTIONS = ['hero', 'engine1', 'engine2', 'engine3', 'profile', 'battlelog', 'analytics', 'audit'];
 
@@ -48,12 +50,28 @@ function PokeballTransition({ visible }) {
 }
 
 function App() {
+  const [session, setSession] = useState(null);
   const [activeSection, setActiveSection] = useState('hero');
   const [transitioning, setTransitioning] = useState(false);
   const sectionRefs = useRef({});
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   // Scroll spy
   useEffect(() => {
+    if (!session) return;
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
@@ -70,7 +88,7 @@ function App() {
       if (el) observer.observe(el);
     });
     return () => observer.disconnect();
-  }, []);
+  }, [session]);
 
   const navigate = useCallback((sectionId) => {
     setTransitioning(true);
@@ -81,6 +99,14 @@ function App() {
       setTimeout(() => setTransitioning(false), 400);
     }, 200);
   }, []);
+
+  if (!session) {
+    return (
+      <ToastProvider>
+        <Auth />
+      </ToastProvider>
+    );
+  }
 
   return (
     <ToastProvider>

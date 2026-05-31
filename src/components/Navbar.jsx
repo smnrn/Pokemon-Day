@@ -93,14 +93,33 @@ export default function Navbar({ activeSection, onNavigate }) {
             ))}
           </div>
 
-          {/* Status dot */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-            <motion.div
-              animate={{ opacity: [0.4, 1, 0.4] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-              style={{ width: 6, height: 6, borderRadius: '50%', background: '#06d6a0', boxShadow: '0 0 6px #06d6a0' }}
-            />
-            <span style={{ fontFamily: 'Press Start 2P', fontSize: '8px', color: '#06d6a0' }}>ONLINE</span>
+          {/* Status dot and Logout */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <motion.div
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ repeat: Infinity, duration: 2 }}
+                style={{ width: 6, height: 6, borderRadius: '50%', background: '#06d6a0', boxShadow: '0 0 6px #06d6a0' }}
+              />
+              <span style={{ fontFamily: 'Press Start 2P', fontSize: '8px', color: '#06d6a0' }}>ONLINE</span>
+            </div>
+            <button
+              onClick={() => {
+                import('../db.js').then(({ supabase }) => supabase.auth.signOut());
+              }}
+              style={{
+                background: 'rgba(230, 57, 70, 0.1)',
+                border: '1px solid rgba(230, 57, 70, 0.5)',
+                color: '#e63946',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                fontFamily: 'Press Start 2P',
+                fontSize: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              LOGOUT
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
