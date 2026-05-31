@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { id: 'audit',    label: 'AUDIT' },
 ];
 
-export default function Navbar({ activeSection, onNavigate, onLogout }) {
+export default function Navbar({ activeSection, onNavigate, onLogout, username }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navRefs = useRef({});
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
@@ -95,13 +95,18 @@ export default function Navbar({ activeSection, onNavigate, onLogout }) {
 
           {/* Status dot and Logout */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <motion.div
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ repeat: Infinity, duration: 2 }}
-                style={{ width: 6, height: 6, borderRadius: '50%', background: '#06d6a0', boxShadow: '0 0 6px #06d6a0' }}
-              />
-              <span style={{ fontFamily: 'Press Start 2P', fontSize: '8px', color: '#06d6a0' }}>ONLINE</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontFamily: 'Press Start 2P', fontSize: '9px', color: '#e8e8ff', textShadow: '0 0 6px rgba(232,232,255,0.4)', textTransform: 'uppercase' }}>
+                {username ? username.split('@')[0] : 'TRAINER'}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(6,214,160,0.1)', padding: '4px 6px', borderRadius: '4px', border: '1px solid rgba(6,214,160,0.2)' }}>
+                <motion.div
+                  animate={{ opacity: [0.4, 1, 0.4] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  style={{ width: 6, height: 6, borderRadius: '50%', background: '#06d6a0', boxShadow: '0 0 6px #06d6a0' }}
+                />
+                <span style={{ fontFamily: 'Press Start 2P', fontSize: '8px', color: '#06d6a0' }}>ONLINE</span>
+              </div>
             </div>
             <button
               onClick={() => onLogout && onLogout()}

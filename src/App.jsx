@@ -276,7 +276,7 @@ function AppContent() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.4 }}
           >
-            <Navbar activeSection={activeSection} onNavigate={navigate} onLogout={handleLogout}/>
+            <Navbar activeSection={activeSection} onNavigate={navigate} onLogout={handleLogout} username={trainerName} />
           </motion.div>
 
           <main style={{ paddingTop: '60px' }}>
