@@ -289,6 +289,9 @@ export async function generateGymTeam({ gymType, strategy, teamSize, model, regi
     valid = fetched.filter(p => p && !usedIds.has(p.id));
   }
   
+  // IMMEDIATELY strip out any banned Pokémon (Legendaries, Paradox, etc.)
+  valid = valid.filter(p => !isBannedPokemon(p.name));
+  
   // Advanced Stat Evaluation - Strategy Weighting & Model Logic
   let scored = valid.map(p => {
     const s = { hp: 0, attack: 0, defense: 0, 'special-attack': 0, 'special-defense': 0, speed: 0 };
@@ -422,7 +425,9 @@ export async function generateGymTeam({ gymType, strategy, teamSize, model, regi
   if (selected.length < teamSize) {
      for (const p of sorted) {
        if (selected.length >= teamSize) break;
-       if (!selected.find(sel => sel.id === p.id)) selected.push(p);
+       if (!selected.find(sel => sel.id === p.id) && !isBannedPokemon(p.name)) {
+         selected.push(p);
+       }
      }
   }
 
@@ -500,7 +505,7 @@ export async function generateCounters(opponentTeam, useFullDex, customPoolData 
   }
   
   
-  const valid = pool.filter(p => p && !p.name.includes('-') && p.stats.reduce((s, st) => s + st.base_stat, 0) >= 420).map(p => ({
+  const valid = pool.filter(p => p && !p.name.includes('-') && !isBannedPokemon(p.name) && p.stats.reduce((s, st) => s + st.base_stat, 0) >= 420).map(p => ({
     ...p,
     types: p.types.map(t => t.type.name),
     sprite: p.sprites.other?.['official-artwork']?.front_default || p.sprites.front_default,
