@@ -270,21 +270,23 @@ Storage uses PostgreSQL hosted on Supabase.
 ### 8.1 Pokémon Data
 `pokemon_id, pokemon_name, native_region, generation, type_1, type_2, hp, attack, defense, special_attack, special_defense, speed, restricted_status, source`
 
-### 8.2 Team Engine Output
-`team_output_id, section, group_name, gym_leader, region, type_specialization, generated_team, native_region_validation, model_used, metric_used, timestamp`
+### 8.2 Profiles (Trainer Authentication)
+`id, id (auth.users), username, section, created_at, updated_at, is_banned`
 
-### 8.3 Challenger Selection Output
-`challenger_output_id, section, group_name, target_gym_leader, challenger_region, gym_leader_team, recommended_challenger_team, native_region_validation, model_used, counter_score, timestamp`
+### 8.3 Team Engine Output
+`team_output_id, username, section, gym_leader, region, type_specialization, generated_team, native_region_validation, model_used, metric_used, timestamp`
 
-### 8.4 Prediction
-`match_id, gym_leader, challenger, gym_leader_team, challenger_team, predicted_winner, confidence_score, prediction_reason, timestamp_before_battle`
+### 8.4 Challenger Selection Output
+`challenger_output_id, username, section, target_gym_leader, challenger_region, gym_leader_team, recommended_challenger_team, native_region_validation, model_used, counter_score, timestamp`
 
-### 8.5 Ground Truth
-`match_id, actual_winner, correct_prediction, final_score, number_of_turns, replay_link, screenshot_or_photo_link, timestamp_after_battle`
+### 8.5 Prediction
+`match_id, username, gym_leader, challenger, gym_leader_team, challenger_team, predicted_winner, confidence_score, prediction_reason, timestamp_before_battle`
 
-### 8.6 Audit Log
-*(Strongly encouraged — shows records weren't changed without accountability)*
-`audit_id, user_or_operator, action_done, affected_record, old_value, new_value, timestamp`
+### 8.6 Ground Truth
+`match_id, username, actual_winner, correct_prediction, final_score, number_of_turns, replay_link, screenshot_or_photo_link, timestamp_after_battle`
+
+### 8.7 Audit Log
+`id, username, action, details, timestamp`
 
 ---
 
