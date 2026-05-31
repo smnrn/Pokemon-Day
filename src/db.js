@@ -5,10 +5,19 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ---- Helper ----
+async function getUsername() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return 'system';
+  return (session.user.email || '').split('@')[0];
+}
+
 // ---- Audit Log ----
 export async function addAuditLog(action, record, oldVal, newVal) {
+  const username = await getUsername();
   const { data, error } = await supabase.from('audit_logs').insert([{
     action,
+    username,
     affected_record: record,
     old_value: oldVal,
     new_value: newVal
@@ -25,8 +34,10 @@ export async function getAuditLogs() {
 
 // ---- Engine Output ----
 export async function saveEngineOutput(engine, data) {
+  const username = await getUsername();
   const { data: entry, error } = await supabase.from('engine_outputs').insert([{
     engine,
+    username,
     data
   }]).select();
   if (error) console.error('saveEngineOutput error:', error);
@@ -43,8 +54,10 @@ export async function getEngineOutputs(engine) {
 
 // ---- Predictions ----
 export async function savePrediction(matchId, battlerA, battlerB, predictedWinner, replayLink) {
+  const username = await getUsername();
   const { data: entry, error } = await supabase.from('predictions').insert([{
     match_id: matchId,
+    username,
     battler_a: battlerA,
     battler_b: battlerB,
     predicted_winner: predictedWinner,
@@ -58,9 +71,11 @@ export async function savePrediction(matchId, battlerA, battlerB, predictedWinne
 
 // ---- Ground Truth (Battle Results) ----
 export async function saveBattleResult(matchId, battlerA, battlerB, predicted, actual, confidence, mvp, replayLink) {
+  const username = await getUsername();
   const hit = predicted === actual;
   const { data: entry, error } = await supabase.from('ground_truth').insert([{
     match_id: matchId,
+    username,
     battler_a: battlerA,
     battler_b: battlerB,
     predicted_winner: predicted,

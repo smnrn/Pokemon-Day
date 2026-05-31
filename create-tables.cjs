@@ -19,6 +19,7 @@ async function testConnection() {
       CREATE TABLE engine_outputs (
         id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
         user_id uuid NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
+        username text,
         engine text NOT NULL,
         data jsonb NOT NULL,
         timestamp timestamp with time zone DEFAULT now()
@@ -27,6 +28,7 @@ async function testConnection() {
       CREATE TABLE predictions (
         id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
         user_id uuid NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
+        username text,
         match_id text NOT NULL,
         battler_a text NOT NULL,
         battler_b text NOT NULL,
@@ -38,6 +40,7 @@ async function testConnection() {
       CREATE TABLE ground_truth (
         id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
         user_id uuid NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
+        username text,
         match_id text NOT NULL,
         battler_a text NOT NULL,
         battler_b text NOT NULL,
@@ -53,6 +56,7 @@ async function testConnection() {
       CREATE TABLE audit_logs (
         audit_id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
         user_id uuid NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
+        username text,
         action text NOT NULL,
         affected_record text NOT NULL,
         old_value jsonb,

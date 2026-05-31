@@ -205,8 +205,9 @@ export default function Auth({ onLoginSuccess }) {
     const iv = setInterval(() => { p += 1.5; if (p > 85) clearInterval(iv); setProgress(p); }, 30);
 
     const fn = isLogin ? supabase.auth.signInWithPassword : supabase.auth.signUp;
-    const opts = isLogin ? { email: username, password } : {
-      email: username, password,
+    const emailFormat = username.includes('@') ? username : `${username}@pokemon-day.com`;
+    const opts = isLogin ? { email: emailFormat, password } : {
+      email: emailFormat, password,
       options: { data: { section: section || null } },
     };
     const { error } = await fn.call(supabase.auth, opts);
@@ -217,7 +218,7 @@ export default function Auth({ onLoginSuccess }) {
       setAuthFail(true); setBtnText('ACCESS DENIED ✗');
       setScreenRedFlash(true); setPokeballWobble(true);
       setPassword(''); setConfirmPassword('');
-      setErrorMessage('⚠ INVALID TRAINER CREDENTIALS');
+      setErrorMessage(error.message ? `⚠ ${error.message.toUpperCase()}` : '⚠ INVALID TRAINER CREDENTIALS');
       triggerError(); addToast(error.message, 'error');
       setTimeout(() => setScreenRedFlash(false), 200);
       setTimeout(() => setPokeballWobble(false), 600);

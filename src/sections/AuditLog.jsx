@@ -34,7 +34,7 @@ function AuditRow({ entry, index }) {
         {entry.audit_id?.slice(-8)}
       </td>
       <td style={{ fontFamily: 'Exo 2', fontSize: '12px', color: '#e8e8ff', fontWeight: 600 }}>
-        {entry.user || 'system'}
+        {entry.username || 'system'}
       </td>
       <td>
         <span style={{
