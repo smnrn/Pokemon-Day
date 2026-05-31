@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { id: 'audit',    label: 'AUDIT' },
 ];
 
-export default function Navbar({ activeSection, onNavigate }) {
+export default function Navbar({ activeSection, onNavigate, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navRefs = useRef({});
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
@@ -104,9 +104,7 @@ export default function Navbar({ activeSection, onNavigate }) {
               <span style={{ fontFamily: 'Press Start 2P', fontSize: '8px', color: '#06d6a0' }}>ONLINE</span>
             </div>
             <button
-              onClick={() => {
-                import('../db.js').then(({ supabase }) => supabase.auth.signOut());
-              }}
+              onClick={() => onLogout && onLogout()}
               style={{
                 background: 'rgba(230, 57, 70, 0.1)',
                 border: '1px solid rgba(230, 57, 70, 0.5)',
